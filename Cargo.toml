@@ -1,0 +1,19 @@
+[package]
+name = "salah"
+version = "0.4.2"
+authors = ["Farhan Ahmed <farhan@themacronaut.com>"]
+edition = "2018"
+description = "Islamic prayer time library for Rust"
+documentation = "https://docs.rs/salah/"
+homepage = "https://github.com/insha/salah"
+repository = "https://github.com/insha/salah"
+readme = "README.md"
+keywords = ["salah", "pray", "islam", "muslim", "adhan", "reminder", "prompt", "mindful"]
+categories = ["date-and-time", "islam"]
+license = "BSD"
+
+[dev-dependencies]
+spectral = "0.6.0"
+
+[dependencies]
+chrono = "0.4.6"
