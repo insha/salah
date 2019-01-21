@@ -1,6 +1,13 @@
 # Salah
 
 [![Build Status](https://travis-ci.org/insha/salah.svg?branch=master)](https://travis-ci.org/insha/salah)
+[![Crate.io][cratesio-image]][cratesio]
+[![Docs][docs-rs-image]][docsrs]
+
+[cratesio-image]: https://img.shields.io/crates/v/salah.svg
+[cratesio]: https://crates.io/crates/salah
+[docsrs-image]: https://docs.rs/mio/badge.svg
+[docsrs]: https://docs.rs/salah/
 
 ## Usage
 
