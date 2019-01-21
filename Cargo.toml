@@ -8,7 +8,7 @@ documentation = "https://docs.rs/salah/"
 homepage = "https://github.com/insha/salah"
 repository = "https://github.com/insha/salah"
 readme = "README.md"
-keywords = ["salah", "pray", "islam", "muslim", "adhan", "reminder", "prompt", "mindful"]
+keywords = ["salah", "pray", "islam", "reminder", "adhan"]
 categories = ["date-and-time", "islam"]
 license = "BSD"
 
