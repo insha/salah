@@ -77,7 +77,7 @@ pub fn apparent_solar_longitude(julian_century: f64, mean_longitude: Angle) -> A
 }
 
 // The mean obliquity of the ecliptic, formula
-adopted by the International Astronomical Union.
+// adopted by the International Astronomical Union.
 pub fn mean_obliquity_of_the_ecliptic(julian_century: f64) -> Angle {
     // Equation from Astronomical Algorithms page 147
     let term1 = 23.439291;
