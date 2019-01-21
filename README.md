@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/insha/salah.svg?branch=master)](https://travis-ci.org/insha/salah)
 [![Crate.io][cratesio-image]][cratesio]
-[![Docs][docs-rs-image]][docsrs]
+[![Docs][docsrs-image]][docsrs]
 
 [cratesio-image]: https://img.shields.io/crates/v/salah.svg
 [cratesio]: https://crates.io/crates/salah
