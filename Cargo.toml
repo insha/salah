@@ -10,7 +10,7 @@ repository = "https://github.com/insha/salah"
 readme = "README.md"
 keywords = ["salah", "pray", "islam", "reminder", "adhan"]
 categories = ["date-and-time", "islam"]
-license = "BSD"
+license = "BSD-3-Clause"
 
 [dev-dependencies]
 spectral = "0.6.0"
