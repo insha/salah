@@ -1,11 +1,13 @@
 // Salah
 //
-// See See README.md and LICENSE for more details.
+// See LICENSE for more details.
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
 use chrono::{DateTime, Datelike, Utc, Weekday};
 
+/// Names of all obligatory prayers,
+/// sunrise, and Qiyam.
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Prayer {
     Fajr,

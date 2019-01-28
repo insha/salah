@@ -1,12 +1,14 @@
 // Salah
 //
-// See See README.md and LICENSE for more details.
+// See README.md and LICENSE for more details.
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
 use super::adjustments::{Adjustment, TimeAdjustment};
 use super::parameters::{Configuration, Parameters};
 
+/// Provides preset configuration for a few authorities
+/// for calculating prayer times.
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Method {
     // Muslim World League

@@ -1,6 +1,6 @@
 // Salah
 //
-// See See README.md and LICENSE for more details.
+// See LICENSE for more details.
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
@@ -36,7 +36,7 @@ pub use crate::models::prayer::Prayer;
 pub use crate::schedule::{PrayerSchedule, PrayerTimes};
 pub use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc};
 
-/// A convenience module appropriate for glob imports (`use adhan::prelude::*;`).
+/// A convenience module appropriate for glob imports (`use salah::prelude::*;`).
 pub mod prelude {
     #[doc(no_inline)]
     pub use crate::astronomy::unit::{Coordinates, Stride};

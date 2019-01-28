@@ -1,6 +1,6 @@
 // Salah
 //
-// See See README.md and LICENSE for more details.
+// See LICENSE for more details.
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
@@ -46,7 +46,7 @@ impl Default for TimeAdjustment {
 }
 
 /// Builder struct for the [TimeAdjustment](struct.TimeAdjustment.html).
-/// It is recommended to use this for all needed adjustment.
+/// It is recommended to use this for all needed adjustments.
 pub struct Adjustment {
     fajr: i64,
     sunrise: i64,

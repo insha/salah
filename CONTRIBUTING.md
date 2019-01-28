@@ -7,7 +7,7 @@ Reporting issues
 ----------------
 
 - Describe what you expected to happen.
-- If possible, include a [minimal, complete, and verifiable example](https://www.rust-lang.org/tools/install) to help
+- If possible, include a [minimal, complete, and verifiable example](https://stackoverflow.com/help/mcve) to help
   us identify the issue. This also helps check that the issue is not with your
   own code.
 - Describe what actually happened. Include the full traceback if there was an

@@ -1,9 +1,12 @@
 // Salah
 //
-// See See README.md and LICENSE for more details.
+// See LICENSE for more details.
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
+/// Setting for the Asr prayer time. 
+/// For Hanafi madhab, the Asr is bit later 
+/// than that of the Shafi madhab.
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Madhab {
     Shafi = 1,

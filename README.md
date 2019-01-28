@@ -75,6 +75,8 @@ let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
 
 **Method**
 
+Provides preset configuration for a few authorities for calculating prayer times.
+
 | Value | Description |
 | ----- | ----------- |
 | `MuslimWorldLeague` | Muslim World League. Fajr angle: 18, Isha angle: 17 |
@@ -91,12 +93,16 @@ let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
 
 **Madhab**
 
+Setting for the Asr prayer time. For Hanafi madhab, the Asr is bit later than that of the Shafi madhab.
+
 | Value | Description |
 | ----- | ----------- |
 | `Shafi` | Earlier Asr time |
 | `Hanafi` | Later Asr time |
 
 **HighLatitudeRule**
+
+Rule for approximating Fajr and Isha at high latitudes.
 
 | Value | Description |
 | ----- | ----------- |
