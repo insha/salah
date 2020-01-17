@@ -314,6 +314,16 @@ pub fn is_leap_year(year: u32) -> bool {
     true
 }
 
+fn adjust(a: f64, b: f64, c: f64, d: f64, dyy: f64) -> f64 {
+    if (0.0..=90.0).contains(&dyy) { a + (b - a) / 91.0 * dyy } else if 
+        (91.0..=136.0).contains(&dyy) { b + (c - b) / 46.0 * (dyy - 91.0)} else if 
+        (137.0..=182.0) .contains(&dyy) { c + (d - c) / 46.0 * (dyy - 137.0)} else if 
+        (183.0..=228.0 ).contains(&dyy) { d + (c - d) / 46.0 * (dyy - 183.0)} else if 
+        (229.0..=274.0 ).contains(&dyy) { c + (b - c) / 46.0 * (dyy - 229.0)} else {
+        b + (a - b) / 91.0 * (dyy - 275.0)
+    }
+}
+
 // Twilight adjustment based on observational data for use
 // in the Moonsighting Committee calculation method.
 pub fn season_adjusted_morning_twilight(
@@ -328,14 +338,7 @@ pub fn season_adjusted_morning_twilight(
     let d = 75.0 + ((48.10 / 55.0) * latitude.abs());
 
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = match dyy {
-        0.0...90.0 => a + (b - a) / 91.0 * dyy,
-        91.0...136.0 => b + (c - b) / 46.0 * (dyy - 91.0),
-        137.0...182.0 => c + (d - c) / 46.0 * (dyy - 137.0),
-        183.0...228.0 => d + (c - d) / 46.0 * (dyy - 183.0),
-        229.0...274.0 => c + (b - c) / 46.0 * (dyy - 229.0),
-        _ => b + (a - b) / 91.0 * (dyy - 275.0),
-    };
+    let adjustment = adjust(a,b,c,d,dyy);
 
     let rounded_adjustment = (adjustment * -60.0).round() as i64;
     sunrise
@@ -357,14 +360,7 @@ pub fn season_adjusted_evening_twilight(
     let d = 75.0 + ((6.140 / 55.0) * latitude.abs());
 
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = match dyy {
-        0.0...90.0 => a + (b - a) / 91.0 * dyy,
-        91.0...136.0 => b + (c - b) / 46.0 * (dyy - 91.0),
-        137.0...182.0 => c + (d - c) / 46.0 * (dyy - 137.0),
-        183.0...228.0 => d + (c - d) / 46.0 * (dyy - 183.0),
-        229.0...274.0 => c + (b - c) / 46.0 * (dyy - 229.0),
-        _ => b + (a - b) / 91.0 * (dyy - 275.0),
-    };
+    let adjustment = adjust(a,b,c,d,dyy);
 
     let rounded_adjustment = (adjustment * 60.0).round() as i64;
     let adjusted_date = sunset

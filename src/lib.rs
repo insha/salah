@@ -23,6 +23,8 @@
 //!                       .calculate();
 //! ```
 
+#![deny(future_incompatible)]
+
 mod astronomy;
 mod models;
 mod schedule;
