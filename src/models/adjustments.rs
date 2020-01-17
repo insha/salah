@@ -4,12 +4,16 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use std::default::Default;
 
 /// Time adjustment for all prayer times.
 /// The value is specified in *minutes* and
 /// can be either positive or negative.
 #[derive(PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TimeAdjustment {
     pub fajr: i64,
     pub sunrise: i64,

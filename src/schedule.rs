@@ -10,6 +10,8 @@
 //! the prayer times.
 
 use chrono::{Date, DateTime, Datelike, Duration, Local, NaiveDateTime, TimeZone, Timelike, Utc};
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 
 use crate::astronomy::ops;
 use crate::astronomy::solar::SolarTime;
@@ -21,6 +23,7 @@ use crate::models::prayer::Prayer;
 /// A data struct to hold the timing for all
 /// prayers.
 #[derive(PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PrayerTimes {
     fajr: DateTime<Utc>,
     sunrise: DateTime<Utc>,

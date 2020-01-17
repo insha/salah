@@ -4,12 +4,16 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use super::adjustments::{Adjustment, TimeAdjustment};
 use super::parameters::{Configuration, Parameters};
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
 #[derive(PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Method {
     // Muslim World League
     MuslimWorldLeague,

@@ -4,6 +4,9 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use super::adjustments::{Adjustment, TimeAdjustment};
 use super::high_altitude_rule::HighLatitudeRule;
 use super::madhab::Madhab;
@@ -16,6 +19,7 @@ use super::prayer::Prayer;
 /// It is recommended to use [Configuration](struct.Configuration.html) to build
 /// the parameters that are need.
 #[derive(PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Parameters {
     pub method: Method,
     pub fajr_angle: f64,
