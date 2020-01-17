@@ -6,6 +6,11 @@
 
 use crate::astronomy::unit::{Angle, Coordinates};
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Qiblah(f64);
 
 impl Qiblah {
