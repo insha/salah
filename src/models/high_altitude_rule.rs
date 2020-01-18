@@ -8,7 +8,7 @@
 use serde::{Serialize, Deserialize};
 
 /// Rule for approximating Fajr and Isha at high latitudes
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum HighLatitudeRule {
     MiddleOfTheNight,

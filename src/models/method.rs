@@ -12,7 +12,7 @@ use super::parameters::{Configuration, Parameters};
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Method {
     // Muslim World League

@@ -10,7 +10,7 @@ use serde::{Serialize, Deserialize};
 
 /// Names of all obligatory prayers,
 /// sunrise, and Qiyam.
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Prayer {
     Fajr,

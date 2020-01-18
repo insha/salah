@@ -10,7 +10,7 @@ use serde::{Serialize, Deserialize};
 /// Setting for the Asr prayer time. 
 /// For Hanafi madhab, the Asr is bit later 
 /// than that of the Shafi madhab.
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Madhab {
     Shafi = 1,
