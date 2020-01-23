@@ -186,8 +186,6 @@ impl SolarTime {
     }
 
     fn setting_hour(value: f64, date: &DateTime<Utc>) -> Option<DateTime<Utc>> {
-        let mut adjusted_time: Option<DateTime<Utc>> = None;
-
         if value.is_normal() {
             let calculated_hours = value.floor();
             let calculated_minutes = ((value - calculated_hours) * 60.0).floor();
@@ -197,7 +195,9 @@ impl SolarTime {
             // Adjust the hour to be within 0..=23,
             // wrapping around as needed; otherwise
             // chrono method will panic.
-            let (adjusted_hour, adjusted_date) = if calculated_hours >= 24.0 {
+            let (adjusted_hour, adjusted_date) = if calculated_hours <= 0.0 {
+                ((calculated_hours + 24.0) as u32, date.yesterday())
+            } else if calculated_hours >= 24.0 {
                 ((calculated_hours - 24.0) as u32, date.tomorrow())
             } else {
                 (calculated_hours as u32, date.clone())
@@ -207,20 +207,10 @@ impl SolarTime {
             let adjusted_mins = (calculated_minutes + calculated_seconds / 60.0).round() as u32;
             let adjusted_secs: u32 = 0;
 
-            let adjusted = Utc
-                .ymd(
-                    adjusted_date.year(),
-                    adjusted_date.month(),
-                    adjusted_date.day(),
-                )
-                .and_hms(adjusted_hour, adjusted_mins, adjusted_secs);
-
-            adjusted_time = Some(adjusted);
+            Some(adjusted_date.date().and_hms(adjusted_hour, adjusted_mins, adjusted_secs))
         } else {
-            // Nothing to do.
+            None
         }
-
-        adjusted_time
     }
 }
 
