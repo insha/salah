@@ -199,7 +199,7 @@ impl SolarTime {
             // Adjust the hour to be within 0..=23,
             // wrapping around as needed; otherwise
             // chrono method will panic.
-            let (adjusted_hour, adjusted_date) = if calculated_hours <= 0.0 {
+            let (adjusted_hour, adjusted_date) = if calculated_hours < 0.0 {
                 ((calculated_hours + 24.0) as u32, date.yesterday())
             } else if calculated_hours >= 24.0 {
                 ((calculated_hours - 24.0) as u32, date.tomorrow())
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn calculate_julian_date() {
-        let local = Local.ymd(1992, 10, 13).and_hms(0, 0, 0);
+        let local = Utc.ymd(1992, 10, 13).and_hms(0, 0, 0);
         let utc = local.with_timezone(&Utc);
         let julian_day = ops::julian_day(1992, 10, 13, 0.0);
 
