@@ -5,13 +5,16 @@
 //
 
 use chrono::{DateTime, Datelike, Utc, Weekday};
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Names of all obligatory prayers,
 /// sunrise, and Qiyam.
 #[derive(PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub enum Prayer {
     Fajr,
     Sunrise,

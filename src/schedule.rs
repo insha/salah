@@ -10,8 +10,10 @@
 //! the prayer times.
 
 use chrono::{Date, DateTime, Datelike, Duration, Local, NaiveDateTime, TimeZone, Timelike, Utc};
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::astronomy::ops;
 use crate::astronomy::solar::SolarTime;
@@ -24,6 +26,7 @@ use crate::models::prayer::Prayer;
 /// prayers.
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct PrayerTimes {
     fajr: DateTime<Utc>,
     sunrise: DateTime<Utc>,

@@ -18,3 +18,4 @@ spectral = "0.6.0"
 [dependencies]
 chrono = "0.4.10"
 serde = { version = "1.0", default-features = false, optional = true }
+schemars = { version = "0.7", optional = true }

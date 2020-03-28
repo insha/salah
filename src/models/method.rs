@@ -4,8 +4,10 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use super::adjustments::{Adjustment, TimeAdjustment};
 use super::parameters::{Configuration, Parameters};
@@ -14,6 +16,7 @@ use super::parameters::{Configuration, Parameters};
 /// for calculating prayer times.
 #[derive(PartialEq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub enum Method {
     // Muslim World League
     MuslimWorldLeague,

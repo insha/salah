@@ -4,8 +4,10 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use std::default::Default;
 
@@ -14,6 +16,7 @@ use std::default::Default;
 /// can be either positive or negative.
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct TimeAdjustment {
     pub fajr: i64,
     pub sunrise: i64,
