@@ -9,8 +9,10 @@ use std::ops::{Add, Div, Mul, Sub};
 
 use crate::astronomy::ops;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc};
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub trait Normalize {
     fn normalized_to_scale(&self, max: f64) -> f64;
@@ -101,6 +103,7 @@ impl<Tz: TimeZone> Stride for DateTime<Tz> {
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct Angle {
     pub degrees: f64,
 }
@@ -190,6 +193,7 @@ impl Div for Angle {
 /// Both latiude and longitude values are specified in degrees.
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct Coordinates {
     pub latitude: f64,
     pub longitude: f64,

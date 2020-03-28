@@ -5,8 +5,10 @@
 //
 
 use chrono::{DateTime, Datelike, Local, NaiveDateTime, TimeZone, Timelike, Utc};
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::astronomy::ops;
 use crate::astronomy::unit::Stride;
@@ -14,6 +16,7 @@ use crate::astronomy::unit::{Angle, Coordinates};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct SolarCoordinates {
     // The declination of the sun, the angle between
     // the rays of the Sun and the plane of the Earth's equator.
@@ -85,6 +88,7 @@ impl SolarCoordinates {
 // Solar Time
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct SolarTime {
     date: DateTime<Utc>,
     observer: Coordinates,
@@ -211,7 +215,11 @@ impl SolarTime {
             let adjusted_mins = (calculated_minutes + calculated_seconds / 60.0).round() as u32;
             let adjusted_secs: u32 = 0;
 
-            Some(adjusted_date.date().and_hms(adjusted_hour, adjusted_mins, adjusted_secs))
+            Some(
+                adjusted_date
+                    .date()
+                    .and_hms(adjusted_hour, adjusted_mins, adjusted_secs),
+            )
         } else {
             None
         }
@@ -333,5 +341,4 @@ mod tests {
 
         assert_eq!(sunrise_time, 10.131800480632849);
     }
-
 }
