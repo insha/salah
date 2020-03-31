@@ -31,6 +31,7 @@ mod schedule;
 
 pub use crate::astronomy::unit::{Coordinates, Stride};
 pub use crate::models::adjustments::{Adjustment, TimeAdjustment};
+pub use crate::models::high_altitude_rule::HighLatitudeRule;
 pub use crate::models::madhab::Madhab;
 pub use crate::models::method::Method;
 pub use crate::models::parameters::{Configuration, Parameters};
