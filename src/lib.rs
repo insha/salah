@@ -47,6 +47,8 @@ pub mod prelude {
     #[doc(no_inline)]
     pub use crate::models::method::Method;
     #[doc(no_inline)]
+    pub use crate::models::high_altitude_rule::HighLatitudeRule;
+    #[doc(no_inline)]
     pub use crate::models::parameters::{Configuration, Parameters};
     #[doc(no_inline)]
     pub use crate::models::prayer::Prayer;
