@@ -9,8 +9,10 @@ use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use super::adjustments::{Adjustment, TimeAdjustment};
-use super::parameters::{Configuration, Parameters};
+use super::{
+    adjustments::Adjustment,
+    parameters::{Configuration, Parameters},
+};
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
@@ -18,56 +20,57 @@ use super::parameters::{Configuration, Parameters};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub enum Method {
-    // Muslim World League
+    /// Muslim World League
     MuslimWorldLeague,
 
-    //Egyptian General Authority of Survey
+    /// Egyptian General Authority of Survey
     Egyptian,
 
-    // University of Islamic Sciences, Karachi
+    /// University of Islamic Sciences, Karachi
     Karachi,
 
-    // Umm al-Qura University, Makkah
+    /// Umm al-Qura University, Makkah
     UmmAlQura,
 
-    // The Gulf Region
+    /// The Gulf Region
     Dubai,
 
-    // Moonsighting Committee
+    /// Moonsighting Committee
     MoonsightingCommittee,
 
-    // ISNA
+    /// ISNA
     NorthAmerica,
 
-    // Kuwait
+    /// Kuwait
     Kuwait,
 
-    // Qatar
+    /// Qatar
     Qatar,
 
-    // Singapore
+    /// Singapore
     Singapore,
 
-    // Other
+    /// Other
     Other,
 }
 
 impl Method {
+    /// Get method parameters
     pub fn parameters(&self) -> Parameters {
         match self {
             Method::MuslimWorldLeague => Configuration::new(18.0, 17.0)
                 .method(*self)
-                .method_adjustments(Adjustment::new().dhuhr(1).done())
+                .method_adjustments(Adjustment::default().dhuhr(1).done())
                 .done(),
 
             Method::Egyptian => Configuration::new(19.5, 17.5)
                 .method(*self)
-                .method_adjustments(Adjustment::new().dhuhr(1).done())
+                .method_adjustments(Adjustment::default().dhuhr(1).done())
                 .done(),
 
             Method::Karachi => Configuration::new(18.0, 18.0)
                 .method(*self)
-                .method_adjustments(Adjustment::new().dhuhr(1).done())
+                .method_adjustments(Adjustment::default().dhuhr(1).done())
                 .done(),
 
             Method::UmmAlQura => Configuration::new(18.5, 0.0)
@@ -77,7 +80,7 @@ impl Method {
             Method::Dubai => Configuration::new(18.2, 18.2)
                 .method(*self)
                 .method_adjustments(
-                    Adjustment::new()
+                    Adjustment::default()
                         .sunrise(-3)
                         .dhuhr(3)
                         .asr(3)
@@ -88,12 +91,12 @@ impl Method {
 
             Method::MoonsightingCommittee => Configuration::new(18.0, 18.0)
                 .method(*self)
-                .method_adjustments(Adjustment::new().dhuhr(5).maghrib(3).done())
+                .method_adjustments(Adjustment::default().dhuhr(5).maghrib(3).done())
                 .done(),
 
             Method::NorthAmerica => Configuration::new(15.0, 15.0)
                 .method(*self)
-                .method_adjustments(Adjustment::new().dhuhr(1).done())
+                .method_adjustments(Adjustment::default().dhuhr(1).done())
                 .done(),
 
             Method::Kuwait => Configuration::new(18.0, 17.5).method(*self).done(),
@@ -105,7 +108,7 @@ impl Method {
 
             Method::Singapore => Configuration::new(20.0, 18.0)
                 .method(*self)
-                .method_adjustments(Adjustment::new().dhuhr(1).done())
+                .method_adjustments(Adjustment::default().dhuhr(1).done())
                 .done(),
 
             Method::Other => Configuration::new(0.0, 0.0).method(*self).done(),
@@ -114,6 +117,7 @@ impl Method {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
 

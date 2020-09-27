@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use super::adjustments::{Adjustment, TimeAdjustment};
+use super::adjustments::TimeAdjustment;
 use super::high_altitude_rule::HighLatitudeRule;
 use super::madhab::Madhab;
 use super::method::Method;
@@ -37,8 +37,8 @@ pub struct Parameters {
 impl Parameters {
     pub fn new(fajr_angle: f64, isha_angle: f64) -> Parameters {
         Parameters {
-            fajr_angle: fajr_angle,
-            isha_angle: isha_angle,
+            fajr_angle,
+            isha_angle,
             method: Method::Other,
             isha_interval: 0,
             madhab: Madhab::Shafi,
@@ -87,8 +87,8 @@ pub struct Configuration {
 impl Configuration {
     pub fn new(fajr_angle: f64, isha_angle: f64) -> Configuration {
         Configuration {
-            fajr_angle: fajr_angle,
-            isha_angle: isha_angle,
+            fajr_angle,
+            isha_angle,
             method: Method::Other,
             isha_interval: 0,
             madhab: Madhab::Shafi,
@@ -105,33 +105,30 @@ impl Configuration {
         params
     }
 
-    pub fn method<'a>(&'a mut self, method: Method) -> &'a mut Configuration {
+    pub fn method(&mut self, method: Method) -> &mut Configuration {
         self.method = method;
         self
     }
 
-    pub fn method_adjustments<'a>(
-        &'a mut self,
-        method_adjustments: TimeAdjustment,
-    ) -> &'a mut Configuration {
+    pub fn method_adjustments(&mut self, method_adjustments: TimeAdjustment) -> &mut Configuration {
         self.method_adjustments = method_adjustments;
         self
     }
 
-    pub fn high_latitude_rule<'a>(
-        &'a mut self,
+    pub fn high_latitude_rule(
+        &mut self,
         high_latitude_rule: HighLatitudeRule,
-    ) -> &'a mut Configuration {
+    ) -> &mut Configuration {
         self.high_latitude_rule = high_latitude_rule;
         self
     }
 
-    pub fn madhab<'a>(&'a mut self, madhab: Madhab) -> &'a mut Configuration {
+    pub fn madhab(&mut self, madhab: Madhab) -> &mut Configuration {
         self.madhab = madhab;
         self
     }
 
-    pub fn isha_interval<'a>(&'a mut self, isha_interval: i32) -> &'a mut Configuration {
+    pub fn isha_interval(&mut self, isha_interval: i32) -> &mut Configuration {
         self.isha_angle = 0.0;
         self.isha_interval = isha_interval;
         self
@@ -152,6 +149,7 @@ impl Configuration {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
 

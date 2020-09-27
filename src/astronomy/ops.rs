@@ -4,10 +4,10 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Duration, Timelike, Utc};
+use chrono::{DateTime, Datelike, Duration, DurationRound, Utc};
 
+use crate::astronomy::unit::Normalize;
 use crate::astronomy::unit::{Angle, Coordinates};
-use crate::astronomy::unit::{Normalize, Stride};
 
 // The geometric mean longitude of the sun.
 pub fn mean_solar_longitude(julian_century: f64) -> Angle {
@@ -277,7 +277,7 @@ pub fn interpolate_angles(
 }
 
 // The Julian Day for the given Gregorian date.
-pub fn julian_day(year: i32, month: i32, day: i32, hours: f64) -> f64 {
+pub fn julian_day_ymdh(year: i32, month: i32, day: i32, hours: f64) -> f64 {
     // Equation from Astronomical Algorithms page 60
 
     // NOTE: Casting to i32 is done intentionally for the purpose of decimal truncation
@@ -293,6 +293,11 @@ pub fn julian_day(year: i32, month: i32, day: i32, hours: f64) -> f64 {
     let i1: i32 = (30.6001 * ((adjusted_month as f64) + 1.0)) as i32;
 
     (i0 as f64) + (i1 as f64) + adjusted_day + (b as f64) - 1524.5
+}
+
+// The Julian Day for the given Gregorian date.
+pub fn julian_day<Tz: chrono::TimeZone>(dt: &DateTime<Tz>) -> f64 {
+    julian_day_ymdh(dt.year() as i32, dt.month() as i32, dt.day() as i32, 0.0)
 }
 
 // Julian century from the epoch.
@@ -315,11 +320,17 @@ pub fn is_leap_year(year: u32) -> bool {
 }
 
 fn adjust(a: f64, b: f64, c: f64, d: f64, dyy: f64) -> f64 {
-    if (0.0..=90.0).contains(&dyy) { a + (b - a) / 91.0 * dyy } else if 
-        (91.0..=136.0).contains(&dyy) { b + (c - b) / 46.0 * (dyy - 91.0)} else if 
-        (137.0..=182.0) .contains(&dyy) { c + (d - c) / 46.0 * (dyy - 137.0)} else if 
-        (183.0..=228.0 ).contains(&dyy) { d + (c - d) / 46.0 * (dyy - 183.0)} else if 
-        (229.0..=274.0 ).contains(&dyy) { c + (b - c) / 46.0 * (dyy - 229.0)} else {
+    if (0.0..=90.0).contains(&dyy) {
+        a + (b - a) / 91.0 * dyy
+    } else if (91.0..=136.0).contains(&dyy) {
+        b + (c - b) / 46.0 * (dyy - 91.0)
+    } else if (137.0..=182.0).contains(&dyy) {
+        c + (d - c) / 46.0 * (dyy - 137.0)
+    } else if (183.0..=228.0).contains(&dyy) {
+        d + (c - d) / 46.0 * (dyy - 183.0)
+    } else if (229.0..=274.0).contains(&dyy) {
+        c + (b - c) / 46.0 * (dyy - 229.0)
+    } else {
         b + (a - b) / 91.0 * (dyy - 275.0)
     }
 }
@@ -338,7 +349,7 @@ pub fn season_adjusted_morning_twilight(
     let d = 75.0 + ((48.10 / 55.0) * latitude.abs());
 
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = adjust(a,b,c,d,dyy);
+    let adjustment = adjust(a, b, c, d, dyy);
 
     let rounded_adjustment = (adjustment * -60.0).round() as i64;
     sunrise
@@ -360,72 +371,67 @@ pub fn season_adjusted_evening_twilight(
     let d = 75.0 + ((6.140 / 55.0) * latitude.abs());
 
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = adjust(a,b,c,d,dyy);
+    let adjustment = adjust(a, b, c, d, dyy);
 
     let rounded_adjustment = (adjustment * 60.0).round() as i64;
     let adjusted_date = sunset
         .checked_add_signed(Duration::seconds(rounded_adjustment))
         .unwrap();
 
-    adjusted_date.nearest_minute()
+    adjusted_date.duration_round(Duration::minutes(1)).unwrap()
 }
 
 // Solstice calculation to determine a date's seasonal progression.
 // Used in the Moonsighting Committee calculation method.
-pub fn days_since_solstice(day_of_year: u32, year: u32, latitude: f64) -> u32 {
-    let mut days_since_solstice = 0;
+pub fn days_since_solstice(day_of_year: u32, year: u32, latitude: f64) -> i32 {
     let northern_offset = 10;
     let southern_offset = if is_leap_year(year) { 173 } else { 172 };
     let days_in_year = if is_leap_year(year) { 366 } else { 365 };
 
     if latitude >= 0.0 {
-        days_since_solstice = day_of_year + northern_offset;
+        let days_since_solstice = day_of_year as i32 + northern_offset;
 
-        if days_since_solstice >= days_in_year {
-            days_since_solstice = days_since_solstice - days_in_year
-        } else {
-            // Nothing to do.
-        }
+        days_since_solstice
+            - if days_since_solstice >= days_in_year {
+                days_in_year
+            } else {
+                0
+            }
     } else {
-        days_since_solstice = day_of_year - southern_offset;
+        let days_since_solstice = day_of_year as i32 - southern_offset;
 
-        if days_since_solstice < 0 {
-            days_since_solstice = days_since_solstice + days_in_year
-        } else {
-            // Nothing to do.
-        }
+        days_since_solstice
+            + if days_since_solstice < 0 {
+                days_in_year
+            } else {
+                0
+            }
     }
-
-    days_since_solstice
-}
-
-pub fn adjust_time(date: &DateTime<Utc>, minutes: i64) -> DateTime<Utc> {
-    date.checked_add_signed(Duration::seconds(minutes * 60))
-        .unwrap()
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
 
     #[test]
     fn calculate_julian_day() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
 
         assert_eq!(julian_day, 2448908.5);
     }
 
     #[test]
     fn calculate_julian_century() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
 
-        assert_eq!(julian_century, -0.072183436002737855);
+        assert_eq!(julian_century, -0.072_183_436_002_737_86);
     }
 
     #[test]
     fn calculate_mean_solar_longitude() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_solar_longitude = mean_solar_longitude(julian_century);
 
@@ -434,18 +440,18 @@ mod tests {
 
     #[test]
     fn calculate_apparent_solar_longitude() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_solar_longitude = mean_solar_longitude(julian_century);
         let apparent_solar_longitude =
             apparent_solar_longitude(julian_century, mean_solar_longitude).radians();
 
-        assert_eq!(apparent_solar_longitude, 3.4890691820452062);
+        assert_eq!(apparent_solar_longitude, 3.489_069_182_045_206);
     }
 
     #[test]
     fn calculate_mean_obliquity_of_the_ecliptic() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_obliq_of_ecliptic = mean_obliquity_of_the_ecliptic(julian_century);
 
@@ -454,7 +460,7 @@ mod tests {
 
     #[test]
     fn calculate_apparent_obliquity_of_the_ecliptic() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_obliq_of_ecliptic = mean_obliquity_of_the_ecliptic(julian_century);
         let apparent_obliq_of_ecliptic =
@@ -465,16 +471,16 @@ mod tests {
 
     #[test]
     fn calculate_mean_solar_anomaly() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_solar_anomaly = mean_solar_anomaly(julian_century);
 
-        assert_eq!(mean_solar_anomaly.degrees, 278.99396643159753);
+        assert_eq!(mean_solar_anomaly.degrees, 278.993_966_431_597_5);
     }
 
     #[test]
     fn calculate_solar_equation_of_the_center() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_solar_anomaly = mean_solar_anomaly(julian_century);
         let solar_equation_of_center =
@@ -485,7 +491,7 @@ mod tests {
 
     #[test]
     fn calculate_mean_lunar_longitude() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_lunar_longitude = mean_lunar_longitude(julian_century);
 
@@ -494,7 +500,7 @@ mod tests {
 
     #[test]
     fn calculate_acending_lunar_node_longitude() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let ascending_lunar_node = ascending_lunar_node_longitude(julian_century);
 
@@ -503,7 +509,7 @@ mod tests {
 
     #[test]
     fn calculate_mean_sidereal_time() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_sidereal_time = mean_sidereal_time(julian_century);
 
@@ -512,7 +518,7 @@ mod tests {
 
     #[test]
     fn calculate_nutation_longitude() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_solar_longitude = mean_solar_longitude(julian_century);
         let mean_lunar_longitude = mean_lunar_longitude(julian_century);
@@ -528,7 +534,7 @@ mod tests {
 
     #[test]
     fn calculate_nutation_in_obliquity() {
-        let julian_day = julian_day(1992, 10, 13, 0.0);
+        let julian_day = julian_day_ymdh(1992, 10, 13, 0.0);
         let julian_century = julian_century(julian_day);
         let mean_solar_longitude = mean_solar_longitude(julian_century);
         let mean_lunar_longitude = mean_lunar_longitude(julian_century);
@@ -539,12 +545,12 @@ mod tests {
             ascending_lunar_node,
         );
 
-        assert_eq!(nutation_obliq, -0.000092747500292341556);
+        assert_eq!(nutation_obliq, -0.000_092_747_500_292_341_56);
     }
 
     #[test]
     fn calculate_altitude_of_celestial_body() {
-        let coordinates = Coordinates::new(35.783333333333331, -78.650000000000006);
+        let coordinates = Coordinates::new(35.783_333_333_333_33, -78.65);
         let declination_angle = Angle::new(21.894701414701338);
         let local_hour_angle = Angle::new(108.09275357838322);
         let celestial_body = altitude_of_celestial_body(
@@ -553,7 +559,6 @@ mod tests {
             local_hour_angle,
         );
 
-        assert_eq!(celestial_body.degrees, -0.90061562155943208);
+        assert_eq!(celestial_body.degrees, -0.900_615_621_559_432_1);
     }
-
 }

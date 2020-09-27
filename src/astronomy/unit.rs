@@ -7,8 +7,6 @@
 use std::f64::consts::PI;
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::astronomy::ops;
-use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc};
 #[cfg(feature = "schemars")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
@@ -21,83 +19,6 @@ pub trait Normalize {
 impl Normalize for f64 {
     fn normalized_to_scale(&self, max: f64) -> f64 {
         self - (max * (self / max).floor())
-    }
-}
-
-/// Convenience methods for the DateTime type.
-pub trait Stride {
-    fn tomorrow(&self) -> Self;
-    fn yesterday(&self) -> Self;
-    fn julian_day(&self) -> f64;
-    fn nearest_minute(&self) -> Self;
-    fn adjust_time(&self, minutes: i64) -> Self;
-    fn next_date(&self, fwd: bool) -> Self;
-}
-
-impl<Tz: TimeZone> Stride for DateTime<Tz> {
-    /// Returns the date/time for tomorrow.
-    fn tomorrow(&self) -> Self {
-        self.next_date(true)
-    }
-
-    /// Returns the date/time for yesterday.
-    fn yesterday(&self) -> Self {
-        self.next_date(false)
-    }
-
-    /// Returns the Julian day.
-    fn julian_day(&self) -> f64 {
-        ops::julian_day(
-            self.year() as i32,
-            self.month() as i32,
-            self.day() as i32,
-            0.0,
-        )
-    }
-
-    fn nearest_minute(&self) -> Self {
-        let adjusted = self.clone();
-        let seconds = adjusted.second() as i64;
-
-        if adjusted.second() >= 30 {
-            adjusted + Duration::seconds(60 - seconds)
-        } else {
-            adjusted + Duration::seconds(seconds * -1)
-        }
-    }
-
-    fn adjust_time(&self, minutes: i64) -> Self {
-        let some_date = self.clone();
-        some_date
-            .checked_add_signed(Duration::seconds(minutes * 60))
-            .unwrap()
-    }
-
-    fn next_date(&self, fwd: bool) -> Self {
-        let ordinal = if fwd {
-            self.ordinal() + 1
-        } else {
-            self.ordinal() - 1
-        };
-
-        match self.with_ordinal(ordinal) {
-            Some(dt) => dt,
-            None => {
-                if fwd {
-                    self.with_year(self.year() + 1)
-                        .unwrap()
-                        .with_ordinal(1)
-                        .unwrap()
-                } else {
-                    self.with_year(self.year() - 1)
-                        .unwrap()
-                        .with_month(12)
-                        .unwrap()
-                        .with_day(31)
-                        .unwrap()
-                }
-            }
-        }
     }
 }
 
@@ -135,7 +56,7 @@ impl Angle {
         if self.degrees >= -180.0 && self.degrees <= 180.0 {
             // Nothing to do. Already initialized
             // to the default value.
-            angle = self.clone();
+            angle = *self;
         } else {
             let value = self.degrees - (360.0 * (self.degrees / 360.0).round());
             angle = Angle { degrees: value };
@@ -191,6 +112,7 @@ impl Div for Angle {
 
 /// The latitude and longitude associated with a location.
 /// Both latiude and longitude values are specified in degrees.
+
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schemars", derive(JsonSchema))]
@@ -202,13 +124,11 @@ pub struct Coordinates {
 impl Coordinates {
     pub fn new(latitude: f64, longitude: f64) -> Self {
         Coordinates {
-            latitude: latitude,
-            longitude: longitude,
+            latitude,
+            longitude,
         }
     }
-}
 
-impl Coordinates {
     pub fn latitude_angle(&self) -> Angle {
         Angle::new(self.latitude)
     }
@@ -219,7 +139,10 @@ impl Coordinates {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
+    use chrono::{Duration, DurationRound, TimeZone, Utc};
+
     use super::*;
     use std::f64::consts::PI;
 
@@ -284,15 +207,15 @@ mod tests {
     #[test]
     fn calculate_nearest_minute() {
         let time_1 = Utc.ymd(2015, 7, 13).and_hms(4, 37, 30);
-        let time_2 = Utc.ymd(2015, 07, 13).and_hms(05, 59, 20);
+        let time_2 = Utc.ymd(2015, 7, 13).and_hms(5, 59, 20);
 
         assert_eq!(
-            time_1.nearest_minute(),
-            Utc.ymd(2015, 7, 13).and_hms(4, 38, 00)
+            time_1.duration_round(Duration::minutes(1)).unwrap(),
+            Utc.ymd(2015, 7, 13).and_hms(4, 38, 0)
         );
         assert_eq!(
-            time_2.nearest_minute(),
-            Utc.ymd(2015, 07, 13).and_hms(05, 59, 00)
+            time_2.duration_round(Duration::minutes(1)).unwrap(),
+            Utc.ymd(2015, 7, 13).and_hms(5, 59, 0)
         );
     }
 }

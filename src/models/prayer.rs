@@ -4,7 +4,7 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Datelike, Utc, Weekday};
+use chrono::{Datelike, Utc, Weekday};
 #[cfg(feature = "schemars")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]

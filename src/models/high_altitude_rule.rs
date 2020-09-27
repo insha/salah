@@ -10,10 +10,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// Rule for approximating Fajr and Isha at high latitudes
+
 #[derive(PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub enum HighLatitudeRule {
+    // FIXME: docs
     MiddleOfTheNight,
     SeventhOfTheNight,
     TwilightAngle,
