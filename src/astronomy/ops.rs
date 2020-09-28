@@ -352,9 +352,7 @@ pub fn season_adjusted_morning_twilight(
     let adjustment = adjust(a, b, c, d, dyy);
 
     let rounded_adjustment = (adjustment * -60.0).round() as i64;
-    sunrise
-        .checked_add_signed(Duration::seconds(rounded_adjustment))
-        .unwrap()
+    sunrise + Duration::seconds(rounded_adjustment)
 }
 
 // Twilight adjustment based on observational data for use
@@ -374,9 +372,7 @@ pub fn season_adjusted_evening_twilight(
     let adjustment = adjust(a, b, c, d, dyy);
 
     let rounded_adjustment = (adjustment * 60.0).round() as i64;
-    let adjusted_date = sunset
-        .checked_add_signed(Duration::seconds(rounded_adjustment))
-        .unwrap();
+    let adjusted_date = sunset + Duration::seconds(rounded_adjustment);
 
     adjusted_date.duration_round(Duration::minutes(1)).unwrap()
 }
