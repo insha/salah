@@ -2,9 +2,9 @@ use salah::prelude::*;
 
 fn main() {
     let city = Coordinates::new(24.383_144, 88.583_183); // Rajshahi
-    let date = Utc::today();
+    let date = Local::today();
     let params = Parameters::with(Method::Karachi, Madhab::Hanafi);
-    let prayers = PrayerTimes::new(date, city, params);
+    let prayers = PrayerTimes::calculate(date, city, params);
 
     println!(
         "Fajr: {}",
@@ -106,6 +106,7 @@ fn main() {
 
     println!();
     println!("Now    : {}", Local::now().to_rfc3339());
+    println!();
 
     println!(
         "Current prayer: {} ({} minutes remaining)",
@@ -123,7 +124,7 @@ fn main() {
             .to_string()
     );
 
-    let t11am = Local::today().and_hms(5, 0, 0).with_timezone(&Utc);
+    let t11am = Local::today().and_hms(5, 0, 0).with_timezone(&Local);
     let pat11am = prayers.prayer_at(t11am);
 
     assert_eq!(pat11am, Prayer::Fajr);

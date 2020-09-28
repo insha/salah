@@ -4,7 +4,7 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{Date, DateTime, Datelike, Duration, DurationRound, Utc};
+use chrono::{Date, DateTime, Datelike, Duration, DurationRound, Local};
 
 use crate::astronomy::unit::Normalize;
 use crate::astronomy::unit::{Angle, Coordinates};
@@ -346,8 +346,8 @@ pub fn season_adjusted_morning_twilight(
     latitude: f64,
     day: u32,
     year: u32,
-    sunrise: DateTime<Utc>,
-) -> DateTime<Utc> {
+    sunrise: DateTime<Local>,
+) -> DateTime<Local> {
     let a = 75.0 + ((28.65 / 55.0) * latitude.abs());
     let b = 75.0 + ((19.44 / 55.0) * latitude.abs());
     let c = 75.0 + ((32.74 / 55.0) * latitude.abs());
@@ -366,8 +366,8 @@ pub fn season_adjusted_evening_twilight(
     latitude: f64,
     day: u32,
     year: u32,
-    sunset: DateTime<Utc>,
-) -> DateTime<Utc> {
+    sunset: DateTime<Local>,
+) -> DateTime<Local> {
     let a = 75.0 + ((25.60 / 55.0) * latitude.abs());
     let b = 75.0 + ((2.050 / 55.0) * latitude.abs());
     let c = 75.0 - ((9.210 / 55.0) * latitude.abs());

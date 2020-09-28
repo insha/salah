@@ -4,7 +4,7 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{Date, DateTime, Datelike, TimeZone, Utc};
+use chrono::{Date, DateTime, Local, TimeZone, Utc};
 #[cfg(feature = "schemars")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
@@ -94,18 +94,19 @@ pub struct SolarTime {
     date: Date<Utc>,
     observer: Coordinates,
     solar: SolarCoordinates,
-    pub transit: DateTime<Utc>,
-    pub sunrise: DateTime<Utc>,
-    pub sunset: DateTime<Utc>,
+    pub transit: DateTime<Local>,
+    pub sunrise: DateTime<Local>,
+    pub sunset: DateTime<Local>,
     prev_solar: SolarCoordinates,
     next_solar: SolarCoordinates,
     approx_transit: f64,
 }
 
 impl SolarTime {
-    pub fn new(date: Date<Utc>, coordinates: Coordinates) -> SolarTime {
+    pub fn new(date: Date<Local>, coordinates: Coordinates) -> SolarTime {
         // All calculation need to occur at 0h0m UTC
-        let today = Utc.ymd(date.year(), date.month(), date.day());
+        //let today = Utc.ymd(date.year(), date.month(), date.day());
+        let today = date.with_timezone(&Utc);
         let tomorrow = today.succ();
         let yesterday = today.pred();
         let prev_solar = SolarCoordinates::new(yesterday);
@@ -153,19 +154,19 @@ impl SolarTime {
         );
 
         SolarTime {
-            date,
+            date: today,
             observer: coordinates,
             solar,
-            transit: SolarTime::setting_hour(transit_time, &date).unwrap(),
-            sunrise: SolarTime::setting_hour(sunrise_time, &date).unwrap(),
-            sunset: SolarTime::setting_hour(sunset_time, &date).unwrap(),
+            transit: SolarTime::setting_hour(transit_time, today).unwrap(),
+            sunrise: SolarTime::setting_hour(sunrise_time, today).unwrap(),
+            sunset: SolarTime::setting_hour(sunset_time, today).unwrap(),
             prev_solar,
             next_solar,
             approx_transit,
         }
     }
 
-    pub fn time_for_solar_angle(&self, angle: Angle, after_transit: bool) -> DateTime<Utc> {
+    pub fn time_for_solar_angle(&self, angle: Angle, after_transit: bool) -> DateTime<Local> {
         let hours = ops::corrected_hour_angle(
             self.approx_transit,
             angle,
@@ -180,19 +181,19 @@ impl SolarTime {
             self.next_solar.declination,
         );
 
-        SolarTime::setting_hour(hours, &self.date).unwrap()
+        SolarTime::setting_hour(hours, self.date).unwrap()
     }
 
-    pub fn afternoon(&self, shadow_length: f64) -> DateTime<Utc> {
+    pub fn afternoon(&self, shadow_length: f64) -> DateTime<Local> {
         let absolute_degrees = (self.observer.latitude - self.solar.declination.degrees).abs();
         let tangent = Angle::new(absolute_degrees);
         let inverse = shadow_length + tangent.radians().tan();
         let angle = Angle::from_radians((1.0 / inverse).atan());
 
-        self.time_for_solar_angle(angle, true)
+        self.time_for_solar_angle(angle, true).with_timezone(&Local)
     }
 
-    fn setting_hour(value: f64, date: &Date<Utc>) -> Option<DateTime<Utc>> {
+    fn setting_hour(value: f64, date: Date<Utc>) -> Option<DateTime<Local>> {
         if value.is_normal() {
             let calculated_hours = value.floor();
             let calculated_minutes = ((value - calculated_hours) * 60.0).floor();
@@ -207,14 +208,18 @@ impl SolarTime {
             } else if calculated_hours >= 24.0 {
                 ((calculated_hours - 24.0) as u32, date.succ())
             } else {
-                (calculated_hours as u32, *date)
+                (calculated_hours as u32, date)
             };
 
             // Round to the nearest minute
             let adjusted_mins = (calculated_minutes + calculated_seconds / 60.0).round() as u32;
             let adjusted_secs: u32 = 0;
 
-            Some(adjusted_date.and_hms(adjusted_hour, adjusted_mins, adjusted_secs))
+            Some(
+                adjusted_date
+                    .and_hms(adjusted_hour, adjusted_mins, adjusted_secs)
+                    .with_timezone(&Local),
+            )
         } else {
             None
         }
@@ -273,7 +278,7 @@ mod tests {
     #[test]
     fn calculate_solar_time() {
         let coordinates = Coordinates::new(35.0 + 47.0 / 60.0, -78.0 - 39.0 / 60.0);
-        let date = Utc.ymd(2015, 7, 12);
+        let date = Local.ymd(2015, 7, 12);
         let solar = SolarTime::new(date, coordinates);
         let transit_date = Utc.ymd(2015, 7, 12).and_hms(17, 20, 0);
         let sunrise_date = Utc.ymd(2015, 7, 12).and_hms(10, 8, 0);
@@ -287,11 +292,11 @@ mod tests {
     #[test]
     fn calculate_time_for_solar_angle() {
         let coordinates = Coordinates::new(35.0 + 47.0 / 60.0, -78.0 - 39.0 / 60.0);
-        let date = Utc.ymd(2015, 7, 12);
+        let date = Local.ymd(2015, 7, 12);
         let solar = SolarTime::new(date, coordinates);
         let angle = Angle::new(-6.0);
-        let twilight_start = solar.time_for_solar_angle(angle, false);
-        let twilight_end = solar.time_for_solar_angle(angle, true);
+        let twilight_start = solar.time_for_solar_angle(angle, false).with_timezone(&Utc);
+        let twilight_end = solar.time_for_solar_angle(angle, true).with_timezone(&Utc);
 
         assert_eq!(twilight_start.format("%-k:%M").to_string(), "9:38");
         assert_eq!(twilight_end.format("%-k:%M").to_string(), "1:02");

@@ -141,7 +141,7 @@ impl Coordinates {
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use chrono::{Duration, DurationRound, TimeZone, Utc};
+    use chrono::{Duration, DurationRound, Local, TimeZone};
 
     use super::*;
     use std::f64::consts::PI;
@@ -206,16 +206,16 @@ mod tests {
 
     #[test]
     fn calculate_nearest_minute() {
-        let time_1 = Utc.ymd(2015, 7, 13).and_hms(4, 37, 30);
-        let time_2 = Utc.ymd(2015, 7, 13).and_hms(5, 59, 20);
+        let time_1 = Local.ymd(2015, 7, 13).and_hms(4, 37, 30);
+        let time_2 = Local.ymd(2015, 7, 13).and_hms(5, 59, 20);
 
         assert_eq!(
             time_1.duration_round(Duration::minutes(1)).unwrap(),
-            Utc.ymd(2015, 7, 13).and_hms(4, 38, 0)
+            Local.ymd(2015, 7, 13).and_hms(4, 38, 0)
         );
         assert_eq!(
             time_2.duration_round(Duration::minutes(1)).unwrap(),
-            Utc.ymd(2015, 7, 13).and_hms(5, 59, 0)
+            Local.ymd(2015, 7, 13).and_hms(5, 59, 0)
         );
     }
 }

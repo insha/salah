@@ -4,7 +4,7 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{Datelike, Utc, Weekday};
+use chrono::{Datelike, Local, Weekday};
 #[cfg(feature = "schemars")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
@@ -33,7 +33,7 @@ impl Prayer {
             Prayer::Fajr | Prayer::FajrTomorrow => String::from("Fajr"),
             Prayer::Sunrise => String::from("Sunrise"),
             Prayer::Dhuhr => {
-                if Utc::now().weekday() == Weekday::Fri {
+                if Local::now().weekday() == Weekday::Fri {
                     String::from("Jumua")
                 } else {
                     String::from("Dhuhr")
@@ -70,7 +70,7 @@ mod tests {
         assert_eq!(Prayer::Fajr.name(), "Fajr");
         assert_eq!(Prayer::Sunrise.name(), "Sunrise");
 
-        if Utc::now().weekday() == Weekday::Fri {
+        if Local::now().weekday() == Weekday::Fri {
             assert_eq!(Prayer::Dhuhr.name(), "Jumua");
         } else {
             assert_eq!(Prayer::Dhuhr.name(), "Dhuhr");
