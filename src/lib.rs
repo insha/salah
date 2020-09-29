@@ -15,7 +15,7 @@
 //!
 //! let new_york_city = Coordinates::new(40.7128, -74.0059);
 //! let date          = Utc.ymd(2019, 1, 25);
-//! let params        = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+//! let params        = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
 //! let prayers       = PrayerSchedule::default()
 //!                       .on(date)
 //!                       .for_location(new_york_city)
@@ -31,12 +31,8 @@ mod schedule;
 
 pub use crate::astronomy::{qiblah::Qiblah, unit::Coordinates};
 pub use crate::models::{
-    adjustments::{Adjustment, TimeAdjustment},
-    high_altitude_rule::HighLatitudeRule,
-    madhab::Madhab,
-    method::Method,
-    parameters::{Configuration, Parameters},
-    prayer::Prayer,
+    adjustments::TimeAdjustments, high_altitude_rule::HighLatitudeRule, madhab::Madhab,
+    method::Method, parameters::Parameters, prayer::Prayer,
 };
 pub use crate::schedule::{PrayerSchedule, PrayerTimes};
 pub use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc};
@@ -47,11 +43,8 @@ pub mod prelude {
     pub use crate::astronomy::unit::Coordinates;
     #[doc(no_inline)]
     pub use crate::models::{
-        high_altitude_rule::HighLatitudeRule,
-        madhab::Madhab,
-        method::Method,
-        parameters::{Configuration, Parameters},
-        prayer::Prayer,
+        high_altitude_rule::HighLatitudeRule, madhab::Madhab, method::Method,
+        parameters::Parameters, prayer::Prayer,
     };
     #[doc(no_inline)]
     pub use crate::schedule::{PrayerSchedule, PrayerTimes};
@@ -66,7 +59,7 @@ mod tests {
     #[test]
     fn calculate_prayer_times() {
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let schedule = PrayerTimes::new(local_date, coordinates, params);
 
@@ -105,7 +98,7 @@ mod tests {
     #[test]
     fn calculate_times_using_the_builder_successfully() {
         let date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let result = PrayerSchedule::default()
             .on(date)
@@ -154,7 +147,7 @@ mod tests {
     #[test]
     fn calculate_times_using_the_builder_failure() {
         let date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let result = PrayerSchedule::default()
             .on(date)
             .with_configuration(params)
@@ -170,7 +163,7 @@ mod tests {
     fn calculate_qiyam_times() {
         let date = Utc.ymd(2015, 7, 12);
         // let qiyam_date  = Utc.ymd(2015, 7, 13);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let result = PrayerSchedule::default()
             .on(date)

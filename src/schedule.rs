@@ -53,12 +53,12 @@ impl PrayerTimes {
 
         let fajr = PrayerTimes::calculate_fajr(parameters, solar_time, night, coordinates, date);
         let sunrise =
-            solar_time.sunrise + Duration::minutes(parameters.time_adjustments(Prayer::Sunrise));
+            solar_time.sunrise + Duration::minutes(parameters.time_adjustment(Prayer::Sunrise));
         let dhuhr =
-            solar_time.transit + Duration::minutes(parameters.time_adjustments(Prayer::Dhuhr));
-        let asr = asr + Duration::minutes(parameters.time_adjustments(Prayer::Asr));
+            solar_time.transit + Duration::minutes(parameters.time_adjustment(Prayer::Dhuhr));
+        let asr = asr + Duration::minutes(parameters.time_adjustment(Prayer::Asr));
         let maghrib =
-            solar_time.sunset + Duration::minutes(parameters.time_adjustments(Prayer::Maghrib));
+            solar_time.sunset + Duration::minutes(parameters.time_adjustment(Prayer::Maghrib));
         let isha = PrayerTimes::calculate_isha(parameters, solar_time, night, coordinates, date);
 
         // Calculate the middle of the night and qiyam times
@@ -96,26 +96,18 @@ impl PrayerTimes {
             Prayer::Isha => self.isha,
             Prayer::Qiyam => self.qiyam,
             Prayer::FajrTomorrow => self.fajr_tomorrow,
+            Prayer::QiyamYesterday => panic!("unsupported"),
         }
     }
 
     #[inline]
     pub fn current(&self) -> Prayer {
-        self.current_time(Utc::now()).expect("Out of bounds")
+        self.prayer_at(Utc::now())
     }
 
     #[inline]
     pub fn next(&self) -> Prayer {
-        match self.current() {
-            Prayer::Fajr => Prayer::Sunrise,
-            Prayer::Sunrise => Prayer::Dhuhr,
-            Prayer::Dhuhr => Prayer::Asr,
-            Prayer::Asr => Prayer::Maghrib,
-            Prayer::Maghrib => Prayer::Isha,
-            Prayer::Isha => Prayer::Qiyam,
-            Prayer::Qiyam => Prayer::FajrTomorrow,
-            _ => Prayer::FajrTomorrow,
-        }
+        self.current().next()
     }
 
     #[inline]
@@ -123,7 +115,7 @@ impl PrayerTimes {
         Duration::minutes((self.time(self.next()) - Utc::now()).num_minutes())
     }
 
-    fn current_time(&self, time: DateTime<Utc>) -> Option<Prayer> {
+    pub fn _prayer_at(&self, time: DateTime<Utc>) -> Option<Prayer> {
         if (self.fajr_tomorrow - time).num_seconds() <= 0 {
             Some(Prayer::FajrTomorrow)
         } else if (self.qiyam - time).num_seconds() <= 0 {
@@ -141,7 +133,31 @@ impl PrayerTimes {
         } else if (self.fajr - time).num_seconds() <= 0 {
             Some(Prayer::Fajr)
         } else {
-            None
+            Some(Prayer::QiyamYesterday)
+        }
+    }
+
+    /// All time before Fajr returns `QiyamYesterday`
+    /// After `FajrTomorrow` it `panic`s
+    pub fn prayer_at(&self, time: DateTime<Utc>) -> Prayer {
+        if time < self.fajr {
+            Prayer::QiyamYesterday
+        } else if time < self.sunrise {
+            Prayer::Fajr
+        } else if time < self.dhuhr {
+            Prayer::Sunrise
+        } else if time < self.asr {
+            Prayer::Dhuhr
+        } else if time < self.maghrib {
+            Prayer::Asr
+        } else if time < self.isha {
+            Prayer::Maghrib
+        } else if time < self.qiyam {
+            Prayer::Isha
+        } else if time < self.fajr_tomorrow {
+            Prayer::Qiyam
+        } else {
+            panic!("time out of range")
         }
     }
 
@@ -178,7 +194,7 @@ impl PrayerTimes {
             fajr = safe_fajr;
         }
 
-        fajr + Duration::minutes(parameters.time_adjustments(Prayer::Fajr))
+        fajr + Duration::minutes(parameters.time_adjustment(Prayer::Fajr))
     }
 
     fn calculate_isha(
@@ -221,7 +237,7 @@ impl PrayerTimes {
             }
         }
 
-        isha + Duration::minutes(parameters.time_adjustments(Prayer::Isha))
+        isha + Duration::minutes(parameters.time_adjustment(Prayer::Isha))
     }
 
     fn calculate_qiyam(
@@ -295,101 +311,118 @@ mod tests {
     use chrono::TimeZone;
 
     use super::*;
-    use crate::{models::madhab::Madhab, Configuration};
+    use crate::models::madhab::Madhab;
 
     #[test]
     fn current_prayer_should_be_fajr() {
         // Given the above DateTime, the Fajr prayer is at 2015-07-12T08:42:00Z
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = local_date.with_timezone(&Utc).and_hms(9, 0, 0);
 
-        assert_eq!(times.current_time(current_prayer_time), Some(Prayer::Fajr));
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Fajr);
     }
 
     #[test]
     fn current_prayer_should_be_sunrise() {
         // Given the below DateTime, sunrise is at 2015-07-12T10:08:00Z
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = local_date.with_timezone(&Utc).and_hms(11, 0, 0);
 
-        assert_eq!(
-            times.current_time(current_prayer_time),
-            Some(Prayer::Sunrise)
-        );
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Sunrise);
     }
 
     #[test]
     fn current_prayer_should_be_dhuhr() {
         // Given the above DateTime, dhuhr prayer is at 2015-07-12T17:21:00Z
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = local_date.with_timezone(&Utc).and_hms(19, 0, 0);
 
-        assert_eq!(times.current_time(current_prayer_time), Some(Prayer::Dhuhr));
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Dhuhr);
     }
 
     #[test]
     fn current_prayer_should_be_asr() {
         // Given the below DateTime, asr is at 2015-07-12T22:22:00Z
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = local_date.with_timezone(&Utc).and_hms(22, 26, 0);
 
-        assert_eq!(times.current_time(current_prayer_time), Some(Prayer::Asr));
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Asr);
     }
 
     #[test]
     fn current_prayer_should_be_maghrib() {
         // Given the below DateTime, maghrib is at 2015-07-13T00:32:00Z
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = Utc.ymd(2015, 7, 13).and_hms(1, 0, 0);
 
-        assert_eq!(
-            times.current_time(current_prayer_time),
-            Some(Prayer::Maghrib)
-        );
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Maghrib);
     }
 
     #[test]
     fn current_prayer_should_be_isha() {
         // Given the below DateTime, isha is at 2015-07-13T01:57:00Z
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = Utc.ymd(2015, 7, 13).and_hms(2, 0, 0);
 
-        assert_eq!(times.current_time(current_prayer_time), Some(Prayer::Isha));
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Isha);
     }
 
     #[test]
-    fn current_prayer_should_be_none() {
+    fn current_prayer_should_be_qiyam_yesterday() {
         let local_date = Utc.ymd(2015, 7, 12);
-        let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let times = PrayerTimes::new(local_date, coordinates, params);
         let current_prayer_time = local_date.with_timezone(&Utc).and_hms(8, 0, 0);
 
-        assert_eq!(times.current_time(current_prayer_time), None);
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::QiyamYesterday);
+    }
+
+    #[test]
+    fn current_prayer_should_be_qiyam() {
+        let local_date = Utc.ymd(2015, 7, 12);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
+        let coordinates = Coordinates::new(35.7750, -78.6336);
+        let times = PrayerTimes::new(local_date, coordinates, params);
+        let current_prayer_time = local_date.with_timezone(&Utc).succ().and_hms(6, 0, 0);
+
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Qiyam);
+    }
+
+    #[test]
+    #[should_panic]
+    fn current_prayer_should_panic() {
+        let local_date = Utc.ymd(2015, 7, 12);
+        let params = Parameters::with(Method::NorthAmerica, Madhab::Hanafi);
+        let coordinates = Coordinates::new(35.7750, -78.6336);
+        let times = PrayerTimes::new(local_date, coordinates, params);
+        let current_prayer_time = local_date.with_timezone(&Utc).succ().and_hms(9, 0, 0);
+
+        println!("{:?}", times.prayer_at(current_prayer_time));
     }
 
     #[test]
     fn calculate_times_for_moonsighting_method() {
         let date = Utc.ymd(2016, 1, 31);
-        let params = Configuration::with(Method::MoonsightingCommittee, Madhab::Shafi);
+        let params = Parameters::with(Method::MoonsightingCommittee, Madhab::Shafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let result = PrayerSchedule::default()
             .on(date)
@@ -444,7 +477,7 @@ mod tests {
     #[test]
     fn calculate_times_for_moonsighting_method_with_high_latitude() {
         let date = Utc.ymd(2016, 1, 1);
-        let params = Configuration::with(Method::MoonsightingCommittee, Madhab::Hanafi);
+        let params = Parameters::with(Method::MoonsightingCommittee, Madhab::Hanafi);
         let coordinates = Coordinates::new(59.9094, 10.7349);
         let result = PrayerSchedule::default()
             .on(date)
