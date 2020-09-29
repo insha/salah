@@ -4,7 +4,7 @@
 // Copyright (c) 2019 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Datelike, Duration, DurationRound, Utc};
+use chrono::{Date, DateTime, Datelike, Duration, DurationRound, Utc};
 
 use crate::astronomy::unit::Normalize;
 use crate::astronomy::unit::{Angle, Coordinates};
@@ -296,8 +296,13 @@ pub fn julian_day_ymdh(year: i32, month: i32, day: i32, hours: f64) -> f64 {
 }
 
 // The Julian Day for the given Gregorian date.
-pub fn julian_day<Tz: chrono::TimeZone>(dt: &DateTime<Tz>) -> f64 {
-    julian_day_ymdh(dt.year() as i32, dt.month() as i32, dt.day() as i32, 0.0)
+pub fn julian_day<Tz: chrono::TimeZone>(date: Date<Tz>) -> f64 {
+    julian_day_ymdh(
+        date.year() as i32,
+        date.month() as i32,
+        date.day() as i32,
+        0.0,
+    )
 }
 
 // Julian century from the epoch.

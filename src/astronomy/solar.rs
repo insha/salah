@@ -32,7 +32,7 @@ pub struct SolarCoordinates {
 
 impl SolarCoordinates {
     fn new<Tz: TimeZone>(date: Date<Tz>) -> Self {
-        let julian_day = ops::julian_day(&date.and_hms(0, 0, 0));
+        let julian_day = ops::julian_day(date);
         let julian_century = ops::julian_century(julian_day);
         let mean_solar_longitude = ops::mean_solar_longitude(julian_century);
         let mean_lunar_longitude = ops::mean_lunar_longitude(julian_century);
@@ -267,7 +267,7 @@ mod tests {
         let utc = local.with_timezone(&Utc);
         let julian_day = ops::julian_day_ymdh(1992, 10, 13, 0.0);
 
-        assert_eq!(ops::julian_day(&utc), julian_day);
+        assert_eq!(ops::julian_day(utc.date()), julian_day);
     }
 
     #[test]
