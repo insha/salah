@@ -5,18 +5,12 @@
 //
 
 use chrono::{Date, DateTime, Local, TimeZone, Utc};
-#[cfg(feature = "schemars")]
-use schemars::JsonSchema;
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 use crate::astronomy::ops;
 //use crate::astronomy::unit::Stride;
 use crate::astronomy::unit::{Angle, Coordinates};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct SolarCoordinates {
     // The declination of the sun, the angle between
     // the rays of the Sun and the plane of the Earth's equator.
@@ -87,9 +81,7 @@ impl SolarCoordinates {
 }
 
 // Solar Time
-#[derive(Debug, Copy, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "schemars", derive(JsonSchema))]
+#[derive(Debug, Clone)]
 pub struct SolarTime {
     date: Date<Utc>,
     observer: Coordinates,

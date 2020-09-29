@@ -10,10 +10,6 @@
 //! the prayer times.
 
 use chrono::{Date, DateTime, Datelike, Duration, DurationRound, Local};
-#[cfg(feature = "schemars")]
-use schemars::JsonSchema;
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 use crate::astronomy::ops;
 use crate::astronomy::solar::SolarTime;
@@ -24,9 +20,7 @@ use crate::models::prayer::Prayer;
 
 /// A data struct to hold the timing for all
 /// prayers.
-#[derive(PartialEq, Debug, Copy, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "schemars", derive(JsonSchema))]
+#[derive(Debug, Clone)]
 pub struct PrayerTimes {
     fajr: DateTime<Local>,
     sunrise: DateTime<Local>,
@@ -55,7 +49,7 @@ impl PrayerTimes {
         let asr = solar_time.afternoon(parameters.madhab.shadow());
         let night = solar_time_tomorrow.sunrise - solar_time.sunset;
 
-        let fajr = PrayerTimes::calculate_fajr(parameters, solar_time, night, coordinates, date);
+        let fajr = PrayerTimes::calculate_fajr(parameters, &solar_time, night, coordinates, date);
         let sunrise =
             solar_time.sunrise + Duration::minutes(parameters.time_adjustment(Prayer::Sunrise));
         let dhuhr =
@@ -63,13 +57,13 @@ impl PrayerTimes {
         let asr = asr + Duration::minutes(parameters.time_adjustment(Prayer::Asr));
         let maghrib =
             solar_time.sunset + Duration::minutes(parameters.time_adjustment(Prayer::Maghrib));
-        let isha = PrayerTimes::calculate_isha(parameters, solar_time, night, coordinates, date);
+        let isha = PrayerTimes::calculate_isha(parameters, &solar_time, night, coordinates, date);
 
         // Calculate the middle of the night and qiyam times
         let (middle_of_the_night, qiyam, fajr_tomorrow) = PrayerTimes::calculate_qiyam(
             maghrib,
             parameters,
-            solar_time_tomorrow,
+            &solar_time_tomorrow,
             coordinates,
             tomorrow,
         );
@@ -167,7 +161,7 @@ impl PrayerTimes {
 
     fn calculate_fajr(
         parameters: Parameters,
-        solar_time: SolarTime,
+        solar_time: &SolarTime,
         night: Duration,
         coordinates: Coordinates,
         date: Date<Local>,
@@ -203,7 +197,7 @@ impl PrayerTimes {
 
     fn calculate_isha(
         parameters: Parameters,
-        solar_time: SolarTime,
+        solar_time: &SolarTime,
         night: Duration,
         coordinates: Coordinates,
         date: Date<Local>,
@@ -247,7 +241,7 @@ impl PrayerTimes {
     fn calculate_qiyam(
         current_maghrib: DateTime<Local>,
         parameters: Parameters,
-        solar_time: SolarTime,
+        solar_time: &SolarTime,
         coordinates: Coordinates,
         date: Date<Local>,
     ) -> (DateTime<Local>, DateTime<Local>, DateTime<Local>) {
