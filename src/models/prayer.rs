@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub enum Prayer {
+    QiyamYesterday,
     Fajr,
     Sunrise,
     Dhuhr,
@@ -41,7 +42,21 @@ impl Prayer {
             Prayer::Asr => String::from("Asr"),
             Prayer::Maghrib => String::from("Maghrib"),
             Prayer::Isha => String::from("Isha"),
-            Prayer::Qiyam => String::from("Qiyam"),
+            Prayer::Qiyam | Prayer::QiyamYesterday => String::from("Qiyam"),
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        match self {
+            Prayer::Fajr => Prayer::Sunrise,
+            Prayer::Sunrise => Prayer::Dhuhr,
+            Prayer::Dhuhr => Prayer::Asr,
+            Prayer::Asr => Prayer::Maghrib,
+            Prayer::Maghrib => Prayer::Isha,
+            Prayer::Isha => Prayer::Qiyam,
+            Prayer::Qiyam => Prayer::FajrTomorrow,
+            Prayer::QiyamYesterday => Prayer::Fajr,
+            Prayer::FajrTomorrow => unreachable!(),
         }
     }
 }
