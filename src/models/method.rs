@@ -9,14 +9,11 @@ use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use super::{
-    adjustments::Adjustment,
-    parameters::{Configuration, Parameters},
-};
+use super::{adjustments::TimeAdjustments, parameters::Parameters};
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
-#[derive(PartialEq, Debug, Copy, Clone, Hash)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub enum Method {
@@ -56,62 +53,111 @@ pub enum Method {
 
 impl Method {
     /// Get method parameters
-    pub fn parameters(&self) -> Parameters {
+    pub fn parameters(self) -> Parameters {
         match self {
-            Method::MuslimWorldLeague => Configuration::new(18.0, 17.0)
-                .method(*self)
-                .method_adjustments(Adjustment::default().dhuhr(1).done())
-                .done(),
+            Method::MuslimWorldLeague => Parameters {
+                fajr_angle: 18.,
+                isha_angle: 17.,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    dhuhr: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
 
-            Method::Egyptian => Configuration::new(19.5, 17.5)
-                .method(*self)
-                .method_adjustments(Adjustment::default().dhuhr(1).done())
-                .done(),
+            Method::Egyptian => Parameters {
+                fajr_angle: 19.5,
+                isha_angle: 17.5,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    dhuhr: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
 
-            Method::Karachi => Configuration::new(18.0, 18.0)
-                .method(*self)
-                .method_adjustments(Adjustment::default().dhuhr(1).done())
-                .done(),
+            Method::Karachi => Parameters {
+                fajr_angle: 18.,
+                isha_angle: 18.,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    dhuhr: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
 
-            Method::UmmAlQura => Configuration::new(18.5, 0.0)
-                .method(*self)
-                .isha_interval(90)
-                .done(),
-            Method::Dubai => Configuration::new(18.2, 18.2)
-                .method(*self)
-                .method_adjustments(
-                    Adjustment::default()
-                        .sunrise(-3)
-                        .dhuhr(3)
-                        .asr(3)
-                        .maghrib(3)
-                        .done(),
-                )
-                .done(),
+            Method::UmmAlQura => Parameters {
+                fajr_angle: 18.5,
+                isha_interval: 90,
+                method: self,
+                ..Default::default()
+            },
 
-            Method::MoonsightingCommittee => Configuration::new(18.0, 18.0)
-                .method(*self)
-                .method_adjustments(Adjustment::default().dhuhr(5).maghrib(3).done())
-                .done(),
+            Method::Dubai => Parameters {
+                fajr_angle: 18.2,
+                isha_angle: 18.2,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    sunrise: -3,
+                    dhuhr: 3,
+                    asr: 3,
+                    maghrib: 3,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
 
-            Method::NorthAmerica => Configuration::new(15.0, 15.0)
-                .method(*self)
-                .method_adjustments(Adjustment::default().dhuhr(1).done())
-                .done(),
+            Method::MoonsightingCommittee => Parameters {
+                fajr_angle: 18.,
+                isha_angle: 18.,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    dhuhr: 5,
+                    maghrib: 3,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
 
-            Method::Kuwait => Configuration::new(18.0, 17.5).method(*self).done(),
+            Method::NorthAmerica => Parameters {
+                fajr_angle: 15.,
+                isha_angle: 15.,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    dhuhr: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
 
-            Method::Qatar => Configuration::new(18.0, 0.0)
-                .method(*self)
-                .isha_interval(90)
-                .done(),
+            Method::Kuwait => Parameters {
+                fajr_angle: 18.,
+                isha_angle: 17.5,
+                method: self,
+                ..Default::default()
+            },
 
-            Method::Singapore => Configuration::new(20.0, 18.0)
-                .method(*self)
-                .method_adjustments(Adjustment::default().dhuhr(1).done())
-                .done(),
+            Method::Qatar => Parameters {
+                fajr_angle: 18.,
+                isha_interval: 90,
+                method: self,
+                ..Default::default()
+            },
 
-            Method::Other => Configuration::new(0.0, 0.0).method(*self).done(),
+            Method::Singapore => Parameters {
+                fajr_angle: 20.,
+                isha_angle: 18.,
+                method: self,
+                method_adjustments: TimeAdjustments {
+                    dhuhr: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+
+            Method::Other => Parameters::default(),
         }
     }
 }
