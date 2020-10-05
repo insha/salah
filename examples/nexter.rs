@@ -8,101 +8,44 @@ fn main() {
 
     println!(
         "Fajr: {}",
-        prayers
-            .time(Prayer::Fajr)
-            .with_timezone(&Local)
-            .format("%-l:%M %p")
-            .to_string()
+        prayers.time(Prayer::Fajr).format("%-l:%M %p").to_string()
     );
     println!(
         "Sunrise: {}",
         prayers
             .time(Prayer::Sunrise)
-            .with_timezone(&Local)
             .format("%-l:%M %p")
             .to_string()
     );
     println!(
         "Dhuhr: {}",
-        prayers
-            .time(Prayer::Dhuhr)
-            .with_timezone(&Local)
-            .format("%-l:%M %p")
-            .to_string()
+        prayers.time(Prayer::Dhuhr).format("%-l:%M %p").to_string()
     );
     println!(
         "Asr: {}",
-        prayers
-            .time(Prayer::Asr)
-            .with_timezone(&Local)
-            .format("%-l:%M %p")
-            .to_string()
+        prayers.time(Prayer::Asr).format("%-l:%M %p").to_string()
     );
     println!(
         "Maghrib: {}",
         prayers
             .time(Prayer::Maghrib)
-            .with_timezone(&Local)
             .format("%-l:%M %p")
             .to_string()
     );
     println!(
         "Isha: {}",
-        prayers
-            .time(Prayer::Isha)
-            .with_timezone(&Local)
-            .format("%-l:%M %p")
-            .to_string()
+        prayers.time(Prayer::Isha).format("%-l:%M %p").to_string()
     );
 
     println!();
 
-    println!(
-        "Fajr   : {}",
-        prayers
-            .time(Prayer::Fajr)
-            .with_timezone(&Local)
-            .to_rfc3339()
-    );
-    println!(
-        "Sunrise: {}",
-        prayers
-            .time(Prayer::Sunrise)
-            .with_timezone(&Local)
-            .to_rfc3339()
-    );
-    println!(
-        "Dhuhr  : {}",
-        prayers
-            .time(Prayer::Dhuhr)
-            .with_timezone(&Local)
-            .to_rfc3339()
-    );
-    println!(
-        "Asr    : {}",
-        prayers.time(Prayer::Asr).with_timezone(&Local).to_rfc3339()
-    );
-    println!(
-        "Maghrib: {}",
-        prayers
-            .time(Prayer::Maghrib)
-            .with_timezone(&Local)
-            .to_rfc3339()
-    );
-    println!(
-        "Isha   : {}",
-        prayers
-            .time(Prayer::Isha)
-            .with_timezone(&Local)
-            .to_rfc3339()
-    );
-    println!(
-        "Qiyam  : {}",
-        prayers
-            .time(Prayer::Qiyam)
-            .with_timezone(&Local)
-            .to_rfc3339()
-    );
+    println!("Fajr   : {}", prayers.time(Prayer::Fajr).to_rfc3339());
+    println!("Sunrise: {}", prayers.time(Prayer::Sunrise).to_rfc3339());
+    println!("Dhuhr  : {}", prayers.time(Prayer::Dhuhr).to_rfc3339());
+    println!("Asr    : {}", prayers.time(Prayer::Asr).to_rfc3339());
+    println!("Maghrib: {}", prayers.time(Prayer::Maghrib).to_rfc3339());
+    println!("Isha   : {}", prayers.time(Prayer::Isha).to_rfc3339());
+    println!("Qiyam  : {}", prayers.time(Prayer::Qiyam).to_rfc3339());
 
     println!();
     println!("Now    : {}", Local::now().to_rfc3339());
@@ -117,14 +60,10 @@ fn main() {
     println!(
         "Next prayer: {} @ {}",
         prayers.next().name(),
-        prayers
-            .time(prayers.next())
-            .with_timezone(&Local)
-            .format("%-l:%M %p")
-            .to_string()
+        prayers.time(prayers.next()).format("%-l:%M %p").to_string()
     );
 
-    let t11am = Local::today().and_hms(5, 0, 0).with_timezone(&Local);
+    let t11am = Local::today().and_hms(5, 0, 0);
     let pat11am = prayers.prayer_at(t11am);
 
     assert_eq!(pat11am, Prayer::Fajr);
@@ -138,10 +77,6 @@ fn main() {
     println!(
         "Next prayer @ 11am: {} @ {}",
         pat11am.next().name(),
-        prayers
-            .time(pat11am.next())
-            .with_timezone(&Local)
-            .format("%-l:%M %p")
-            .to_string()
+        prayers.time(pat11am.next()).format("%-l:%M %p").to_string()
     );
 }
