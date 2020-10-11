@@ -113,28 +113,6 @@ impl PrayerTimes {
         Duration::minutes((self.time(self.next()) - Local::now()).num_minutes())
     }
 
-    pub fn _prayer_at(&self, time: DateTime<Local>) -> Option<Prayer> {
-        if (self.fajr_tomorrow - time).num_seconds() <= 0 {
-            Some(Prayer::FajrTomorrow)
-        } else if (self.qiyam - time).num_seconds() <= 0 {
-            Some(Prayer::Qiyam)
-        } else if (self.isha - time).num_seconds() <= 0 {
-            Some(Prayer::Isha)
-        } else if (self.maghrib - time).num_seconds() <= 0 {
-            Some(Prayer::Maghrib)
-        } else if (self.asr - time).num_seconds() <= 0 {
-            Some(Prayer::Asr)
-        } else if (self.dhuhr - time).num_seconds() <= 0 {
-            Some(Prayer::Dhuhr)
-        } else if (self.sunrise - time).num_seconds() <= 0 {
-            Some(Prayer::Sunrise)
-        } else if (self.fajr - time).num_seconds() <= 0 {
-            Some(Prayer::Fajr)
-        } else {
-            Some(Prayer::QiyamYesterday)
-        }
-    }
-
     /// All time before Fajr returns `QiyamYesterday`
     /// After `FajrTomorrow` it `panic`s
     pub fn prayer_at(&self, time: DateTime<Local>) -> Prayer {
@@ -300,6 +278,30 @@ mod tests {
             .with_timezone(&Local);
 
         assert_eq!(times.prayer_at(current_prayer_time), Prayer::Sunrise);
+    }
+
+    #[test]
+    fn current_prayer_should_be_fajr_with_high_tz() {
+        // Given the above DateTime, the Fajr prayer is at 2015-07-12T08:42:00Z
+        let local_date = Local.ymd(2020, 10, 11);
+        let params = Parameters::with(Method::Karachi, Madhab::Hanafi);
+        let coordinates = Coordinates::new(24.383_144, 88.583_183);
+        let times = PrayerTimes::calculate(local_date, coordinates, params);
+        let current_prayer_time = local_date.and_hms(5, 0, 0);
+
+        assert_eq!(times.prayer_at(current_prayer_time), Prayer::Fajr);
+    }
+
+    #[test]
+    fn next_prayer_should_be_sunrise_with_high_tz() {
+        // Given the below DateTime, sunrise is at 2015-07-12T10:08:00Z
+        let local_date = Local.ymd(2020, 10, 11);
+        let params = Parameters::with(Method::Karachi, Madhab::Hanafi);
+        let coordinates = Coordinates::new(24.383_144, 88.583_183);
+        let times = PrayerTimes::calculate(local_date, coordinates, params);
+        let current_prayer_time = local_date.and_hms(5, 0, 0);
+
+        assert_eq!(times.prayer_at(current_prayer_time).next(), Prayer::Sunrise);
     }
 
     #[test]
