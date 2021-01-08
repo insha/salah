@@ -1,7 +1,7 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
 use chrono::{DateTime, Datelike, Local, NaiveDateTime, TimeZone, Timelike, Utc};

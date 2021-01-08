@@ -1,7 +1,7 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
 //! An Islamic prayer time implementation based on the [Adhan](https://github.com/batoulapps/Adhan) library by Batoul Apps.
