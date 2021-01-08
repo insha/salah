@@ -322,25 +322,66 @@ pub fn season_adjusted_morning_twilight(
     year: u32,
     sunrise: DateTime<Utc>,
 ) -> DateTime<Utc> {
-    let a = 75.0 + ((28.65 / 55.0) * latitude.abs());
-    let b = 75.0 + ((19.44 / 55.0) * latitude.abs());
-    let c = 75.0 + ((32.74 / 55.0) * latitude.abs());
-    let d = 75.0 + ((48.10 / 55.0) * latitude.abs());
-
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = match dyy {
-        0.0...90.0 => a + (b - a) / 91.0 * dyy,
-        91.0...136.0 => b + (c - b) / 46.0 * (dyy - 91.0),
-        137.0...182.0 => c + (d - c) / 46.0 * (dyy - 137.0),
-        183.0...228.0 => d + (c - d) / 46.0 * (dyy - 183.0),
-        229.0...274.0 => c + (b - c) / 46.0 * (dyy - 229.0),
-        _ => b + (a - b) / 91.0 * (dyy - 275.0),
-    };
+    let adjustment = twilight_adjustments(AdjustmentDaytime::Morning, latitude, dyy);
 
     let rounded_adjustment = (adjustment * -60.0).round() as i64;
     sunrise
         .checked_add_signed(Duration::seconds(rounded_adjustment))
         .unwrap()
+}
+
+fn twilight_adjustments(daytime: AdjustmentDaytime, latitude: f64, dyy: f64) -> f64 {
+    let adjustment_values = twilight_adjustment_values(daytime, latitude);
+
+    if (0.00..=90.0).contains(&dyy) {
+        adjustment_values.a + (adjustment_values.b - adjustment_values.a) / 91.0 * dyy
+    } else if (91.0..=136.0).contains(&dyy) {
+        adjustment_values.b + (adjustment_values.c - adjustment_values.b) / 46.0 * (dyy - 91.0)
+    } else if (137.0..=182.0).contains(&dyy) {
+        adjustment_values.c + (adjustment_values.d - adjustment_values.c) / 46.0 * (dyy - 137.0)
+    } else if (183.0..=228.0).contains(&dyy) {
+        adjustment_values.d + (adjustment_values.c - adjustment_values.d) / 46.0 * (dyy - 183.0)
+    } else if (229.0..=274.0).contains(&dyy) {
+        adjustment_values.c + (adjustment_values.b - adjustment_values.c) / 46.0 * (dyy - 229.0)
+    } else {
+        adjustment_values.b + (adjustment_values.a - adjustment_values.b) / 91.0 * (dyy - 275.0)
+    }
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+enum AdjustmentDaytime {
+    Morning,
+    Evening,
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+struct TwilightAdjustmentValues {
+    a: f64,
+    b: f64,
+    c: f64,
+    d: f64,
+}
+
+fn twilight_adjustment_values(
+    daytime: AdjustmentDaytime,
+    latitude: f64,
+) -> TwilightAdjustmentValues {
+    if daytime == AdjustmentDaytime::Morning {
+        TwilightAdjustmentValues {
+            a: 75.0 + ((28.65 / 55.0) * latitude.abs()),
+            b: 75.0 + ((19.44 / 55.0) * latitude.abs()),
+            c: 75.0 + ((32.74 / 55.0) * latitude.abs()),
+            d: 75.0 + ((48.10 / 55.0) * latitude.abs()),
+        }
+    } else {
+        TwilightAdjustmentValues {
+            a: 75.0 + ((25.60 / 55.0) * latitude.abs()),
+            b: 75.0 + ((2.050 / 55.0) * latitude.abs()),
+            c: 75.0 - ((9.210 / 55.0) * latitude.abs()),
+            d: 75.0 + ((6.140 / 55.0) * latitude.abs()),
+        }
+    }
 }
 
 // Twilight adjustment based on observational data for use
@@ -351,20 +392,8 @@ pub fn season_adjusted_evening_twilight(
     year: u32,
     sunset: DateTime<Utc>,
 ) -> DateTime<Utc> {
-    let a = 75.0 + ((25.60 / 55.0) * latitude.abs());
-    let b = 75.0 + ((2.050 / 55.0) * latitude.abs());
-    let c = 75.0 - ((9.210 / 55.0) * latitude.abs());
-    let d = 75.0 + ((6.140 / 55.0) * latitude.abs());
-
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = match dyy {
-        0.0...90.0 => a + (b - a) / 91.0 * dyy,
-        91.0...136.0 => b + (c - b) / 46.0 * (dyy - 91.0),
-        137.0...182.0 => c + (d - c) / 46.0 * (dyy - 137.0),
-        183.0...228.0 => d + (c - d) / 46.0 * (dyy - 183.0),
-        229.0...274.0 => c + (b - c) / 46.0 * (dyy - 229.0),
-        _ => b + (a - b) / 91.0 * (dyy - 275.0),
-    };
+    let adjustment = twilight_adjustments(AdjustmentDaytime::Evening, latitude, dyy);
 
     let rounded_adjustment = (adjustment * 60.0).round() as i64;
     let adjusted_date = sunset
@@ -377,30 +406,21 @@ pub fn season_adjusted_evening_twilight(
 // Solstice calculation to determine a date's seasonal progression.
 // Used in the Moonsighting Committee calculation method.
 pub fn days_since_solstice(day_of_year: u32, year: u32, latitude: f64) -> u32 {
-    let mut days_since_solstice = 0;
-    let northern_offset = 10;
-    let southern_offset = if is_leap_year(year) { 173 } else { 172 };
     let days_in_year = if is_leap_year(year) { 366 } else { 365 };
 
     if latitude >= 0.0 {
-        days_since_solstice = day_of_year + northern_offset;
+        let northern_offset = 10;
+        let lapsed_days = day_of_year + northern_offset;
 
-        if days_since_solstice >= days_in_year {
-            days_since_solstice = days_since_solstice - days_in_year
+        if lapsed_days >= days_in_year {
+            lapsed_days - days_in_year
         } else {
-            // Nothing to do.
+            lapsed_days
         }
     } else {
-        days_since_solstice = day_of_year - southern_offset;
-
-        if days_since_solstice < 0 {
-            days_since_solstice = days_since_solstice + days_in_year
-        } else {
-            // Nothing to do.
-        }
+        let southern_offset = if is_leap_year(year) { 173 } else { 172 };
+        (day_of_year - southern_offset) + days_in_year
     }
-
-    days_since_solstice
 }
 
 pub fn adjust_time(date: &DateTime<Utc>, minutes: i64) -> DateTime<Utc> {
@@ -559,5 +579,4 @@ mod tests {
 
         assert_eq!(celestial_body.degrees, -0.90061562155943208);
     }
-
 }
