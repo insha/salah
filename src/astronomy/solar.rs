@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Datelike, Local, NaiveDateTime, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Datelike, TimeZone, Utc};
 
 use crate::astronomy::ops;
 use crate::astronomy::unit::Stride;
@@ -228,7 +228,7 @@ impl SolarTime {
 mod tests {
     use super::*;
     use crate::astronomy::ops;
-    use chrono::{DateTime, Datelike, Local, NaiveDateTime, TimeZone, Timelike, Utc};
+    use chrono::{Datelike, Local, TimeZone, Utc};
 
     #[test]
     fn solar_coordinates() {
@@ -315,14 +315,6 @@ mod tests {
             solar.apparent_sidereal_time,
             solar.right_ascension,
         );
-        let transit_time = ops::corrected_transit(
-            approx_transit,
-            coordinates.longitude_angle(),
-            solar.apparent_sidereal_time,
-            solar.right_ascension,
-            prev_solar.right_ascension,
-            next_solar.right_ascension,
-        );
         let sunrise_time = ops::corrected_hour_angle(
             approx_transit,
             solar_altitude,
@@ -339,5 +331,4 @@ mod tests {
 
         assert_eq!(sunrise_time, 10.131800480632849);
     }
-
 }

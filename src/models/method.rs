@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
-use super::adjustments::{Adjustment, TimeAdjustment};
+use super::adjustments::Adjustment;
 use super::parameters::{Configuration, Parameters};
 
 /// Provides preset configuration for a few authorities

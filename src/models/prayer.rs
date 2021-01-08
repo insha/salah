@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Datelike, Utc, Weekday};
+use chrono::{Datelike, Utc, Weekday};
 
 /// Names of all obligatory prayers,
 /// sunrise, and Qiyam.

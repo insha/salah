@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
-use super::adjustments::{Adjustment, TimeAdjustment};
+use super::adjustments::TimeAdjustment;
 use super::high_altitude_rule::HighLatitudeRule;
 use super::madhab::Madhab;
 use super::method::Method;

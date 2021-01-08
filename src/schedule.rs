@@ -9,13 +9,13 @@
 //! This module provide the main objects that are used for calculating
 //! the prayer times.
 
-use chrono::{Date, DateTime, Datelike, Duration, Local, NaiveDateTime, TimeZone, Timelike, Utc};
+use chrono::{Date, DateTime, Datelike, Duration, Utc};
 
 use crate::astronomy::ops;
 use crate::astronomy::solar::SolarTime;
 use crate::astronomy::unit::{Angle, Coordinates, Stride};
 use crate::models::method::Method;
-use crate::models::parameters::{Configuration, Parameters};
+use crate::models::parameters::Parameters;
 use crate::models::prayer::Prayer;
 
 /// A data struct to hold the timing for all
@@ -345,6 +345,8 @@ impl PrayerSchedule {
 mod tests {
     use super::*;
     use crate::models::madhab::Madhab;
+    use crate::Configuration;
+    use chrono::{TimeZone, Utc};
 
     #[test]
     fn current_prayer_should_be_fajr() {
@@ -486,7 +488,7 @@ mod tests {
                 );
             }
 
-            Err(err) => assert!(false),
+            Err(_err) => assert!(false),
         }
     }
 
@@ -541,7 +543,7 @@ mod tests {
                 );
             }
 
-            Err(err) => assert!(false),
+            Err(_err) => assert!(false),
         }
     }
 }

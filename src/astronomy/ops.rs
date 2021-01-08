@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Duration, Timelike, Utc};
+use chrono::{DateTime, Duration, Utc};
 
 use crate::astronomy::unit::{Angle, Coordinates};
 use crate::astronomy::unit::{Normalize, Stride};

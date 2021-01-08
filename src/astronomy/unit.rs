@@ -8,7 +8,7 @@ use std::f64::consts::PI;
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::astronomy::ops;
-use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike};
 
 pub trait Normalize {
     fn normalized_to_scale(&self, max: f64) -> f64;
@@ -213,6 +213,7 @@ impl Coordinates {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
     use std::f64::consts::PI;
 
     #[test]
