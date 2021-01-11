@@ -41,6 +41,8 @@ pub mod prelude {
     #[doc(no_inline)]
     pub use crate::astronomy::unit::{Coordinates, Stride};
     #[doc(no_inline)]
+	pub use crate::astronomy::qiblah::Qiblah;
+    #[doc(no_inline)]
     pub use crate::models::adjustments::{Adjustment, TimeAdjustment};
     #[doc(no_inline)]
     pub use crate::models::madhab::Madhab;
