@@ -15,7 +15,7 @@ Add the following to your `Cargo.toml` file under the `[dependencies]` section:
 
 ```
 [dependencies]
-salah = "0.4.2"
+salah = "0.5.0"
 ```
 
 To get prayer times, use the `PrayerSchedule` struct passing in coordinates, date, and calculation parameters.

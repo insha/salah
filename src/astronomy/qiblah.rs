@@ -120,4 +120,12 @@ mod tests {
 
         assert_eq!(qiblah.0, 293.02072441441163);
     }
+
+    #[test]
+    fn qiblah_direction_from_jakarta_indonesia() {
+        let jakarta = Coordinates::new(-6.18233995, 106.84287154);
+        let qiblah = Qiblah::new(jakarta);
+
+        assert_that!(qiblah.0).is_close_to(295.1442983825265, 0.0000001f64);
+    }
 }

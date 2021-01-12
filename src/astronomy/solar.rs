@@ -194,14 +194,8 @@ impl SolarTime {
             let calculated_seconds =
                 ((value - (calculated_hours + calculated_minutes / 60.0)) * 60.0 * 60.0).floor();
 
-            // Adjust the hour to be within 0..=23,
-            // wrapping around as needed; otherwise
-            // chrono method will panic.
-            let (adjusted_hour, adjusted_date) = if calculated_hours >= 24.0 {
-                ((calculated_hours - 24.0) as u32, date.tomorrow())
-            } else {
-                (calculated_hours as u32, date.clone())
-            };
+            let (adjusted_hour, adjusted_date) =
+                SolarTime::hour_adjustment(calculated_hours, &date);
 
             // Round to the nearest minute
             let adjusted_mins = (calculated_minutes + calculated_seconds / 60.0).round() as u32;
@@ -221,6 +215,19 @@ impl SolarTime {
         }
 
         adjusted_time
+    }
+
+    fn hour_adjustment(calculated_hours: f64, date: &DateTime<Utc>) -> (u32, DateTime<Utc>) {
+        // Adjust the hour to be within 0..=23,
+        // wrapping around as needed; otherwise
+        // chrono method will panic.
+        if calculated_hours < 0.0 {
+            ((calculated_hours + 24.0) as u32, date.yesterday())
+        } else if calculated_hours >= 24.0 {
+            ((calculated_hours - 24.0) as u32, date.tomorrow())
+        } else {
+            (calculated_hours as u32, date.clone())
+        }
     }
 }
 
