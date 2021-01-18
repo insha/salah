@@ -45,6 +45,8 @@ pub mod prelude {
     #[doc(no_inline)]
     pub use crate::models::adjustments::{Adjustment, TimeAdjustment};
     #[doc(no_inline)]
+    pub use crate::models::high_altitude_rule::HighLatitudeRule;
+    #[doc(no_inline)]
     pub use crate::models::madhab::Madhab;
     #[doc(no_inline)]
     pub use crate::models::method::Method;
