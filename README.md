@@ -139,27 +139,56 @@ This is an enum and has variants for all prayers, including, *sunrise* and *Qiya
 ```rust
 use salah::prelude::*;
 
-let new_york_city = Coordinates::new(40.7128, -74.0059);
-let date          = Utc.ymd(2019, 1, 25);
-let params        = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
-let prayers       = PrayerSchedule::new()
-                        .on(date)
-                        .for_location(new_york_city)
-                        .with_configuration(params)
-                        .calculate();
+fn main() {
+    let new_york_city = Coordinates::new(40.7128, -74.0059);
+    let date = Utc.ymd(2019, 1, 25);
+    let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+    let prayers = PrayerSchedule::new()
+        .on(date)
+        .for_location(new_york_city)
+        .with_configuration(params)
+        .calculate();
 
-match prayers
-{
-    Ok(prayer) => {
-        println!("{}: {}", Prayer::Fajr.name(), prayer.time(Prayer::Fajr).format("%-l:%M %p").to_string());
-        println!("{}: {}", Prayer::Sunrise.name(), prayer.time(Prayer::Sunrise).format("%-l:%M %p").to_string());
-        println!("{}: {}", Prayer::Dhuhr.name(), prayer.time(Prayer::Dhuhr).format("%-l:%M %p").to_string());
-        println!("{}: {}", Prayer::Asr.name(), prayer.time(Prayer::Asr).format("%-l:%M %p").to_string());
-        println!("{}: {}", Prayer::Maghrib.name(), prayer.time(Prayer::Maghrib).format("%-l:%M %p").to_string());
-        println!("{}: {}", Prayer::Isha.name(), prayer.time(Prayer::Isha).format("%-l:%M %p").to_string());
-        println!("{}: {}", Prayer::Qiyam.name(), prayer.time(Prayer::Qiyam).format("%-l:%M %p").to_string());
-    },
-    Err(error) => println!("Could not calculate prayer times: {}", error)
+    match prayers {
+        Ok(prayer) => {
+            println!(
+                "{}: {}",
+                Prayer::Fajr.name(),
+                prayer.time(Prayer::Fajr).format("%-l:%M %p").to_string()
+            );
+            println!(
+                "{}: {}",
+                Prayer::Sunrise.name(),
+                prayer.time(Prayer::Sunrise).format("%-l:%M %p").to_string()
+            );
+            println!(
+                "{}: {}",
+                Prayer::Dhuhr.name(),
+                prayer.time(Prayer::Dhuhr).format("%-l:%M %p").to_string()
+            );
+            println!(
+                "{}: {}",
+                Prayer::Asr.name(),
+                prayer.time(Prayer::Asr).format("%-l:%M %p").to_string()
+            );
+            println!(
+                "{}: {}",
+                Prayer::Maghrib.name(),
+                prayer.time(Prayer::Maghrib).format("%-l:%M %p").to_string()
+            );
+            println!(
+                "{}: {}",
+                Prayer::Isha.name(),
+                prayer.time(Prayer::Isha).format("%-l:%M %p").to_string()
+            );
+            println!(
+                "{}: {}",
+                Prayer::Qiyam.name(),
+                prayer.time(Prayer::Qiyam).format("%-l:%M %p").to_string()
+            );
+        }
+        Err(error) => println!("Could not calculate prayer times: {}", error),
+    }
 }
 ```
 
