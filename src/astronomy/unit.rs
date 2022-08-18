@@ -1,13 +1,14 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
 use std::f64::consts::PI;
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::astronomy::ops;
+use crate::models::rounding::Rounding;
 use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike};
 
 pub trait Normalize {
@@ -25,9 +26,9 @@ pub trait Stride {
     fn tomorrow(&self) -> Self;
     fn yesterday(&self) -> Self;
     fn julian_day(&self) -> f64;
-    fn nearest_minute(&self) -> Self;
     fn adjust_time(&self, minutes: i64) -> Self;
     fn next_date(&self, fwd: bool) -> Self;
+	fn rounded_minute(&self, rounding: Rounding) -> Self;
 }
 
 impl<Tz: TimeZone> Stride for DateTime<Tz> {
@@ -51,16 +52,29 @@ impl<Tz: TimeZone> Stride for DateTime<Tz> {
         )
     }
 
-    fn nearest_minute(&self) -> Self {
-        let adjusted = self.clone();
-        let seconds = adjusted.second() as i64;
-
-        if adjusted.second() >= 30 {
-            adjusted + Duration::seconds(60 - seconds)
-        } else {
-            adjusted + Duration::seconds(seconds * -1)
-        }
-    }
+	fn rounded_minute(&self, rounding: Rounding) -> Self {
+		let adjusted = self.clone();
+		let seconds = adjusted.second();
+		
+		match rounding {
+			Rounding::Nearest => {
+				let rounded = ((seconds as f64)/60.0).round() as i64;
+				let adjusted_seconds = seconds as i64;
+				
+				if rounded == 1 {
+					adjusted + Duration::seconds(60 - adjusted_seconds)
+				} else {
+					adjusted + Duration::seconds(adjusted_seconds * -1)
+				}
+			},
+			Rounding::Up => {
+				let adjusted_seconds = seconds as i64;
+				
+				adjusted + Duration::seconds(60 - adjusted_seconds)
+			},
+			Rounding::None => adjusted,
+		}
+	}
 
     fn adjust_time(&self, minutes: i64) -> Self {
         let some_date = self.clone();
@@ -271,21 +285,28 @@ mod tests {
         let angle_a = Angle::new(45.0);
         let angle_b = Angle::new(45.0);
 
-        assert_eq!((angle_a + angle_b).degrees, 90.0)
+        assert_eq!((angle_a + angle_b).degrees, 90.0);
     }
-
-    #[test]
-    fn calculate_nearest_minute() {
+	
+	#[test]
+	fn calculate_rounding_nearest() {
         let time_1 = Utc.ymd(2015, 7, 13).and_hms(4, 37, 30);
-        let time_2 = Utc.ymd(2015, 07, 13).and_hms(05, 59, 20);
-
-        assert_eq!(
-            time_1.nearest_minute(),
-            Utc.ymd(2015, 7, 13).and_hms(4, 38, 00)
-        );
-        assert_eq!(
-            time_2.nearest_minute(),
-            Utc.ymd(2015, 07, 13).and_hms(05, 59, 00)
-        );
-    }
+        
+		assert_eq!(time_1.rounded_minute(Rounding::Nearest), Utc.ymd(2015, 7, 13).and_hms(4, 38, 00));
+	}
+	
+	#[test]
+	fn calculate_rounding_up() {
+		let time_1 = Utc.ymd(2015, 07, 13).and_hms(05, 59, 20);
+		
+		assert_eq!(time_1.rounded_minute(Rounding::Up), Utc.ymd(2015, 7, 13).and_hms(6, 00, 00));
+	}
+	
+	#[test]
+	fn calculate_rounding_none() {
+		let time_1 = Utc.ymd(2015, 07, 13).and_hms(05, 59, 20);
+		
+		assert_eq!(time_1.rounded_minute(Rounding::None), Utc.ymd(2015, 7, 13).and_hms(5, 59, 20));
+	}
+	
 }

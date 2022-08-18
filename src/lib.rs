@@ -1,7 +1,7 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
 //! An Islamic prayer time implementation based on the [Adhan](https://github.com/batoulapps/Adhan) library by Batoul Apps.
@@ -205,19 +205,6 @@ mod tests {
         let mut params = Configuration::with(Method::Singapore, Madhab::Shafi);
 
         params.high_latitude_rule = HighLatitudeRule::MiddleOfTheNight;
-
-        // The adjustment below are based on the prayer times that are provided
-        // on the website (http://www.muis.gov.sg). I don't know the exact
-        // calculation that this site is using for the prayer times; therefore the
-        // use of time adjustment. However, these are within the 2 minute variance.
-        params.method_adjustments = Adjustment::new()
-            .fajr(1)
-            .sunrise(1)
-            .dhuhr(2)
-            .asr(1)
-            .maghrib(1)
-            .isha(1)
-            .done();
 
         let result = PrayerSchedule::new()
             .on(Utc.ymd(2021, 1, 13))

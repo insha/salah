@@ -1,11 +1,11 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
-/// Setting for the Asr prayer time. 
-/// For Hanafi madhab, the Asr is bit later 
+/// Setting for the Asr prayer time.
+/// For Hanafi madhab, the Asr is bit later
 /// than that of the Shafi madhab.
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Madhab {

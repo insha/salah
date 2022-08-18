@@ -1,12 +1,12 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
 //! # Prayer Schedule
 //!
-//! This module provide the main objects that are used for calculating
+//! This module provides the main objects that are used for calculating
 //! the prayer times.
 
 use chrono::{Date, DateTime, Datelike, Duration, Utc};
@@ -17,6 +17,7 @@ use crate::astronomy::unit::{Angle, Coordinates, Stride};
 use crate::models::method::Method;
 use crate::models::parameters::Parameters;
 use crate::models::prayer::Prayer;
+use crate::models::rounding::Rounding;
 
 /// A data struct to hold the timing for all
 /// prayers.
@@ -49,20 +50,24 @@ impl PrayerTimes {
             .signed_duration_since(solar_time.sunset);
 
         let final_fajr =
-            PrayerTimes::calculate_fajr(parameters, solar_time, night, coordinates, prayer_date);
+            PrayerTimes::calculate_fajr(parameters, solar_time, night, coordinates, prayer_date)
+				.rounded_minute(parameters.rounding);
         let final_sunrise = solar_time
             .sunrise
-            .adjust_time(parameters.time_adjustments(Prayer::Sunrise));
+            .adjust_time(parameters.time_adjustments(Prayer::Sunrise))
+			.rounded_minute(parameters.rounding);
         let final_dhuhr = solar_time
             .transit
-            .adjust_time(parameters.time_adjustments(Prayer::Dhuhr));
-        let final_asr = asr.adjust_time(parameters.time_adjustments(Prayer::Asr));
+            .adjust_time(parameters.time_adjustments(Prayer::Dhuhr))
+			.rounded_minute(parameters.rounding);
+        let final_asr = asr.adjust_time(parameters.time_adjustments(Prayer::Asr))
+			.rounded_minute(parameters.rounding);
         let final_maghrib = ops::adjust_time(
             &solar_time.sunset,
-            parameters.time_adjustments(Prayer::Maghrib),
-        );
+            parameters.time_adjustments(Prayer::Maghrib)).rounded_minute(parameters.rounding);
         let final_isha =
-            PrayerTimes::calculate_isha(parameters, solar_time, night, coordinates, prayer_date);
+            PrayerTimes::calculate_isha(parameters, solar_time, night, coordinates, prayer_date)
+				.rounded_minute(parameters.rounding);
 
         // Calculate the middle of the night and qiyam times
         let (final_middle_of_night, final_qiyam, final_fajr_tomorrow) =
@@ -241,6 +246,7 @@ impl PrayerTimes {
                     day_of_year,
                     prayer_date.year() as u32,
                     solar_time.sunset,
+                    parameters.shafaq,
                 )
             } else {
                 let portion = parameters.night_portions().1;
@@ -285,11 +291,11 @@ impl PrayerTimes {
         let middle_of_night = current_maghrib
             .checked_add_signed(Duration::seconds(middle_night_portion))
             .unwrap()
-            .nearest_minute();
+            .rounded_minute(Rounding::Nearest);
         let last_third_of_night = current_maghrib
             .checked_add_signed(Duration::seconds(last_third_portion))
             .unwrap()
-            .nearest_minute();
+            .rounded_minute(Rounding::Nearest);
 
         (middle_of_night, last_third_of_night, tomorrow_fajr)
     }

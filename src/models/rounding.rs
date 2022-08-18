@@ -4,7 +4,9 @@
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
-pub mod ops;
-pub mod qiblah;
-pub mod solar;
-pub mod unit;
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub enum Rounding {
+    Nearest,
+    Up,
+    None,
+}

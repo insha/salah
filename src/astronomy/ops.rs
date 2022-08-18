@@ -1,13 +1,15 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
 use chrono::{DateTime, Duration, Utc};
 
 use crate::astronomy::unit::{Angle, Coordinates};
 use crate::astronomy::unit::{Normalize, Stride};
+use crate::models::shafaq::Shafaq;
+use crate::models::rounding::Rounding;
 
 // The geometric mean longitude of the sun.
 pub fn mean_solar_longitude(julian_century: f64) -> Angle {
@@ -323,7 +325,8 @@ pub fn season_adjusted_morning_twilight(
     sunrise: DateTime<Utc>,
 ) -> DateTime<Utc> {
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = twilight_adjustments(AdjustmentDaytime::Morning, latitude, dyy);
+    let adjustment =
+        twilight_adjustments(AdjustmentDaytime::Morning, latitude, dyy, Shafaq::General);
 
     let rounded_adjustment = (adjustment * -60.0).round() as i64;
     sunrise
@@ -331,8 +334,13 @@ pub fn season_adjusted_morning_twilight(
         .unwrap()
 }
 
-fn twilight_adjustments(daytime: AdjustmentDaytime, latitude: f64, dyy: f64) -> f64 {
-    let adjustment_values = twilight_adjustment_values(daytime, latitude);
+fn twilight_adjustments(
+    daytime: AdjustmentDaytime,
+    latitude: f64,
+    dyy: f64,
+    shafaq: Shafaq,
+) -> f64 {
+    let adjustment_values = twilight_adjustment_values(daytime, latitude, shafaq);
 
     if (0.00..=90.0).contains(&dyy) {
         adjustment_values.a + (adjustment_values.b - adjustment_values.a) / 91.0 * dyy
@@ -366,6 +374,7 @@ struct TwilightAdjustmentValues {
 fn twilight_adjustment_values(
     daytime: AdjustmentDaytime,
     latitude: f64,
+    shafaq: Shafaq,
 ) -> TwilightAdjustmentValues {
     if daytime == AdjustmentDaytime::Morning {
         TwilightAdjustmentValues {
@@ -375,11 +384,25 @@ fn twilight_adjustment_values(
             d: 75.0 + ((48.10 / 55.0) * latitude.abs()),
         }
     } else {
-        TwilightAdjustmentValues {
-            a: 75.0 + ((25.60 / 55.0) * latitude.abs()),
-            b: 75.0 + ((2.050 / 55.0) * latitude.abs()),
-            c: 75.0 - ((9.210 / 55.0) * latitude.abs()),
-            d: 75.0 + ((6.140 / 55.0) * latitude.abs()),
+        match shafaq {
+            Shafaq::General => TwilightAdjustmentValues {
+                a: 75.0 + ((25.60 / 55.0) * latitude.abs()),
+                b: 75.0 + ((2.050 / 55.0) * latitude.abs()),
+                c: 75.0 - ((9.210 / 55.0) * latitude.abs()),
+                d: 75.0 + ((6.140 / 55.0) * latitude.abs()),
+            },
+            Shafaq::Ahmer => TwilightAdjustmentValues {
+                a: 62.0 + ((17.40 / 55.0) * latitude.abs()),
+                b: 62.0 - ((7.160 / 55.0) * latitude.abs()),
+                c: 62.0 + ((5.120 / 55.0) * latitude.abs()),
+                d: 62.0 + ((19.44 / 55.0) * latitude.abs()),
+            },
+            Shafaq::Abyad => TwilightAdjustmentValues {
+                a: 75.0 + ((25.60 / 55.0) * latitude.abs()),
+                b: 75.0 + ((7.160 / 55.0) * latitude.abs()),
+                c: 75.0 + ((36.84 / 55.0) * latitude.abs()),
+                d: 75.0 + ((81.84 / 55.0) * latitude.abs()),
+            },
         }
     }
 }
@@ -391,16 +414,17 @@ pub fn season_adjusted_evening_twilight(
     day: u32,
     year: u32,
     sunset: DateTime<Utc>,
+    shafaq: Shafaq,
 ) -> DateTime<Utc> {
     let dyy = days_since_solstice(day, year, latitude) as f64;
-    let adjustment = twilight_adjustments(AdjustmentDaytime::Evening, latitude, dyy);
+    let adjustment = twilight_adjustments(AdjustmentDaytime::Evening, latitude, dyy, shafaq);
 
     let rounded_adjustment = (adjustment * 60.0).round() as i64;
     let adjusted_date = sunset
         .checked_add_signed(Duration::seconds(rounded_adjustment))
         .unwrap();
 
-    adjusted_date.nearest_minute()
+    adjusted_date.rounded_minute(Rounding::Nearest)
 }
 
 // Solstice calculation to determine a date's seasonal progression.

@@ -1,7 +1,7 @@
 // Salah
 //
 // See LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
 use super::adjustments::TimeAdjustment;
@@ -9,6 +9,8 @@ use super::high_altitude_rule::HighLatitudeRule;
 use super::madhab::Madhab;
 use super::method::Method;
 use super::prayer::Prayer;
+use super::rounding::Rounding;
+use super::shafaq::Shafaq;
 
 /// Settings that are used for determining the
 /// the correct prayer time.
@@ -19,18 +21,22 @@ use super::prayer::Prayer;
 pub struct Parameters {
     pub method: Method,
     pub fajr_angle: f64,
+    pub maghrib_angle: f64,
     pub isha_angle: f64,
     pub isha_interval: i32,
     pub madhab: Madhab,
     pub high_latitude_rule: HighLatitudeRule,
     pub adjustments: TimeAdjustment,
     pub method_adjustments: TimeAdjustment,
+    pub rounding: Rounding,
+    pub shafaq: Shafaq,
 }
 
 impl Parameters {
     pub fn new(fajr_angle: f64, isha_angle: f64) -> Parameters {
         Parameters {
             fajr_angle: fajr_angle,
+            maghrib_angle: 0.0,
             isha_angle: isha_angle,
             method: Method::Other,
             isha_interval: 0,
@@ -38,6 +44,8 @@ impl Parameters {
             high_latitude_rule: HighLatitudeRule::MiddleOfTheNight,
             adjustments: TimeAdjustment::default(),
             method_adjustments: TimeAdjustment::default(),
+            rounding: Rounding::Nearest,
+            shafaq: Shafaq::General,
         }
     }
 
@@ -69,18 +77,22 @@ impl Parameters {
 pub struct Configuration {
     method: Method,
     fajr_angle: f64,
+    maghrib_angle: f64,
     isha_angle: f64,
     isha_interval: i32,
     madhab: Madhab,
     high_latitude_rule: HighLatitudeRule,
     adjustments: TimeAdjustment,
     method_adjustments: TimeAdjustment,
+    rounding: Rounding,
+    shafaq: Shafaq,
 }
 
 impl Configuration {
     pub fn new(fajr_angle: f64, isha_angle: f64) -> Configuration {
         Configuration {
             fajr_angle: fajr_angle,
+            maghrib_angle: 0.0,
             isha_angle: isha_angle,
             method: Method::Other,
             isha_interval: 0,
@@ -88,6 +100,8 @@ impl Configuration {
             high_latitude_rule: HighLatitudeRule::MiddleOfTheNight,
             adjustments: TimeAdjustment::default(),
             method_adjustments: TimeAdjustment::default(),
+            rounding: Rounding::Nearest,
+            shafaq: Shafaq::General,
         }
     }
 
@@ -130,9 +144,25 @@ impl Configuration {
         self
     }
 
+    pub fn maghrib_angle<'a>(&'a mut self, angle: f64) -> &'a mut Configuration {
+        self.maghrib_angle = angle;
+        self
+    }
+
+    pub fn rounding<'a>(&'a mut self, value: Rounding) -> &'a mut Configuration {
+        self.rounding = value;
+        self
+    }
+
+    pub fn shafaq<'a>(&'a mut self, value: Shafaq) -> &'a mut Configuration {
+        self.shafaq = value;
+        self
+    }
+
     pub fn done(&self) -> Parameters {
         Parameters {
             fajr_angle: self.fajr_angle,
+            maghrib_angle: self.maghrib_angle,
             isha_angle: self.isha_angle,
             method: self.method,
             isha_interval: self.isha_interval,
@@ -140,6 +170,8 @@ impl Configuration {
             high_latitude_rule: self.high_latitude_rule,
             adjustments: self.adjustments,
             method_adjustments: self.method_adjustments,
+            rounding: self.rounding,
+            shafaq: self.shafaq,
         }
     }
 }

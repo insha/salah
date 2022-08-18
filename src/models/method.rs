@@ -1,47 +1,72 @@
 // Salah
 //
 // See README.md and LICENSE for more details.
-// Copyright (c) 2019-2021 Farhan Ahmed. All rights reserved.
+// Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
 use super::adjustments::Adjustment;
 use super::parameters::{Configuration, Parameters};
+use super::rounding::Rounding;
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Method {
-    // Muslim World League
+    /// Muslim World League. Standard Fajr time with an angle of 18°.
+    /// Earlier Isha time with an angle of 17°.
     MuslimWorldLeague,
 
-    //Egyptian General Authority of Survey
+    /// Egyptian General Authority of Survey. Early Fajr time using an angle 19.5°
+    /// and a slightly earlier Isha time using an angle of 17.5°.
     Egyptian,
 
-    // University of Islamic Sciences, Karachi
+    /// University of Islamic Sciences, Karachi. A generally applicable method that
+    /// uses standard Fajr and Isha angles of 18°.
     Karachi,
 
-    // Umm al-Qura University, Makkah
+    /// Umm al-Qura University, Makkah. Uses a fixed interval of 90 minutes
+    /// from maghrib to calculate Isha. And a slightly earlier Fajr time with
+    /// an angle of 18.5°. Note: you should add a +30 minute custom adjustment
+    /// for Isha during Ramadan.
     UmmAlQura,
 
-    // The Gulf Region
+    /// Used in the UAE. Slightly earlier Fajr time and slightly later Isha
+    /// time with angles of 18.2° for Fajr and Isha in addition to 3 minute
+    /// offsets for sunrise, Dhuhr, Asr, and Maghrib.
     Dubai,
 
-    // Moonsighting Committee
+    /// Method developed by Khalid Shaukat, founder of Moonsighting Committee Worldwide.
+    /// Uses standard 18° angles for Fajr and Isha in addition to seasonal adjustment values.
+    /// This method automatically applies the 1/7 approximation rule for locations above 55°
+    /// latitude. Recommended for North America and the UK.
     MoonsightingCommittee,
 
-    // ISNA
+    /// Also known as the ISNA method. Can be used for North America,
+    /// but the moonsightingCommittee method is preferable. Gives later Fajr times and early.
+    /// Isha times with angles of 15°.
     NorthAmerica,
 
-    // Kuwait
+    /// Standard Fajr time with an angle of 18°. Slightly earlier Isha time with an angle of 17.5°.
     Kuwait,
 
-    // Qatar
+    /// Same Isha interval as `ummAlQura` but with the standard Fajr time using an angle of 18°.
     Qatar,
 
-    // Singapore
+    /// Used in Singapore, Malaysia, and Indonesia. Early Fajr time with an angle of 20°
+    /// and standard Isha time with an angle of 18°.
     Singapore,
 
-    // Other
+    /// Institute of Geophysics, University of Tehran. Early Isha time with an angle of 14°.
+    /// Slightly later Fajr time with an angle of 17.7°. Calculates Maghrib based on the sun
+    /// reaching an angle of 4.5° below the horizon.
+    Tehran,
+
+    /// An approximation of the Diyanet method used in Turkey.
+    /// This approximation is less accurate outside the region of Turkey.
+    Turkey,
+
+    /// Defaults to angles of 0°, should generally be used for making a custom method
+    /// and setting your own values.
     Other,
 }
 
@@ -99,6 +124,24 @@ impl Method {
             Method::Singapore => Configuration::new(20.0, 18.0)
                 .method(*self)
                 .method_adjustments(Adjustment::new().dhuhr(1).done())
+                .rounding(Rounding::Up)
+                .done(),
+
+            Method::Tehran => Configuration::new(17.7, 14.0)
+                .method(*self)
+                .maghrib_angle(4.5)
+                .done(),
+
+            Method::Turkey => Configuration::new(18.0, 17.0)
+                .method(*self)
+                .method_adjustments(
+                    Adjustment::new()
+                        .sunrise(-7)
+                        .dhuhr(5)
+                        .asr(4)
+                        .maghrib(7)
+                        .done(),
+                )
                 .done(),
 
             Method::Other => Configuration::new(0.0, 0.0).method(*self).done(),
