@@ -61,7 +61,7 @@ pub mod prelude {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::high_altitude_rule::HighLatitudeRule;
+    use crate::{models::high_altitude_rule::HighLatitudeRule, prelude::Qiblah};
     use chrono::prelude::*;
 
     #[test]
@@ -281,5 +281,24 @@ mod tests {
             }
             Err(_err) => assert!(false),
         }
+    }
+
+    #[test]
+    fn check_for_qiblah_accessiblity_in_other_files() {
+        let city = Coordinates::new(23.7231, 90.4086);
+
+        let qiblah = Qiblah::new(city);
+
+        // Calling the field 0 of "qiblah" is private in the current crate
+        // "field `0` of struct `qiblah::Qiblah` is private" [rust_analyzer]
+        // Which makes it unaccessible from other files
+        // your tests ran perfectly as they are in the same file
+        // in my update I made the field public
+
+        // After making the field public in line 13 of astronomy/qiblah.rs file
+        // the following test will pass, InShaaAllah
+        assert_eq!(qiblah.0, 277.6480194680894);
+
+        // test tests::check_for_qiblah_accessiblity_in_other_files ... ok
     }
 }

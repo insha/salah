@@ -6,7 +6,11 @@
 
 use crate::astronomy::unit::{Angle, Coordinates};
 
-pub struct Qiblah(f64);
+// Old
+// pub struct Qiblah(f64);
+
+// New
+pub struct Qiblah(pub f64);
 
 impl Qiblah {
     pub fn new(location_coordinates: Coordinates) -> Self {
