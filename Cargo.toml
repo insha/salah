@@ -1,6 +1,6 @@
 [package]
 name = "salah"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Farhan Ahmed <farhan@themacronaut.com>"]
 edition = "2018"
 description = "Islamic prayer time library for Rust"

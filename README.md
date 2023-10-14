@@ -15,7 +15,7 @@ Add the following to your `Cargo.toml` file under the `[dependencies]` section:
 
 ```
 [dependencies]
-salah = "0.7.0"
+salah = "0.7.1"
 ```
 
 To get prayer times, use the `PrayerSchedule` struct passing in coordinates, date, and calculation parameters.
@@ -25,7 +25,7 @@ use salah::prelude::*;
 
 let new_york_city = Coordinates::new(40.7128, -74.0059);
 let date          = Utc.ymd(2019, 1, 25);
-let params        = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
+let params        = Configuration::with(Method::MoonsightingCommittee, Madhab::Hanafi);
 let prayers       = PrayerSchedule::new()
                       .on(date)
                       .for_location(new_york_city)
@@ -219,9 +219,18 @@ Get the direction, in degrees from North, of the Qibla from a given set of coord
 
 ```rust
 let new_york_city   = Coordinates::new(40.7128, -74.0059);
-let qibla_direction = Qibla::new(coordinates: new_york_city);
+let qiblah_direction = Qiblah::new(new_york_city);
 
-println!("Qiblah: {:?}", qibla_direction); //  Outputs: Qiblah: 58.4817
+println!("Qiblah: {}", qibla_direction); //  Outputs: Qiblah: 58.4817
+```
+
+TO access that actual numerical (f64) value of the qiblah direction, you can use the `value()` method on the `Qiblah` instance.
+
+```rust
+let new_york_city   = Coordinates::new(40.7128, -74.0059);
+let qiblah_direction = Qiblah::new(new_york_city);
+
+println!("Qiblah: {}", qibla_direction.value()); //  Outputs: Qiblah: 58.48176358718943
 ```
 
 ## Contributing
