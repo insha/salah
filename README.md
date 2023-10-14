@@ -1,6 +1,6 @@
 # Salah
 
-[![Build Status](https://travis-ci.org/insha/salah.svg?branch=master)](https://travis-ci.org/insha/salah)
+![Build Status](https://github.com/insha/salah/actions/workflows/rust.yml/badge.svg)
 [![Crate.io][cratesio-image]][cratesio]
 [![Docs][docsrs-image]][docsrs]
 
