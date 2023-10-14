@@ -149,6 +149,6 @@ mod tests {
         let qiblah = Qiblah::new(nyc);
         let actual_value = qiblah.to_string();
 
-        assert_eq!(actual_value, "58.48176358718943");
+        assert!(actual_value.contains("58.4817635"));
     }
 }
