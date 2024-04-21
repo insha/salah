@@ -282,4 +282,18 @@ mod tests {
             Err(_err) => assert!(false),
         }
     }
+
+    #[test]
+    fn calculate_time_for_kuala_lumpur() {
+        let location = Coordinates::new(3.12, 101.69);
+        let date = NaiveDate::from_ymd_opt(2024, 4, 9).expect("Invalid date provided");
+        let params = Configuration::with(Method::MuslimWorldLeague, Madhab::Shafi);
+        let result = PrayerSchedule::new()
+            .on(date)
+            .for_location(location)
+            .with_configuration(params)
+            .calculate();
+
+        assert!(result.is_ok());
+    }
 }

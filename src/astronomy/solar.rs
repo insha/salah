@@ -200,6 +200,12 @@ impl SolarTime {
             let adjusted_mins = (calculated_minutes + calculated_seconds / 60.0).round() as u32;
             let adjusted_secs: u32 = 0;
 
+            let (hour, mins, secs) = if adjusted_mins > 59 {
+                (adjusted_hour + 1, 0, adjusted_secs)
+            } else {
+                (adjusted_hour, adjusted_mins, adjusted_secs)
+            };
+
             let adjusted = Utc
                 .with_ymd_and_hms(
                     adjusted_date.year(),

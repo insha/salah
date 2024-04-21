@@ -15,7 +15,7 @@ Add the following to your `Cargo.toml` file under the `[dependencies]` section:
 
 ```
 [dependencies]
-salah = "0.7.1"
+salah = "0.7.5"
 ```
 
 To get prayer times, use the `PrayerSchedule` struct passing in coordinates, date, and calculation parameters.
@@ -24,7 +24,7 @@ To get prayer times, use the `PrayerSchedule` struct passing in coordinates, dat
 use salah::prelude::*;
 
 let new_york_city = Coordinates::new(40.7128, -74.0059);
-let date          = Utc.ymd(2019, 1, 25);
+let date          = NaiveDate::from_ymd_opt(2019, 1, 25).expect("Invalid date provided");
 let params        = Configuration::with(Method::MoonsightingCommittee, Madhab::Hanafi);
 let prayers       = PrayerSchedule::new()
                       .on(date)
@@ -134,7 +134,7 @@ Shafaq is used by the MoonsightingCommittee method to determine what type of twi
 ### Prayer Schedule
 
 The `PrayerSchedule` struct is a builder for the the `PrayerTimes` struct. Once the `calculate()` method is invoked on it, a `PrayerTime` struct will be initialized and it will contain fields
-for all five prayer times, the time for sunrise, and for the Qiyam prayer. 
+for all five prayer times, the time for sunrise, and for the Qiyam prayer.
 
 The prayer time will be an instance of `DateTime<Utc>` and as such will refer to a fixed point in universal time. To display these times for the local timezone you will need to format them with the appropriate local time zone.
 
