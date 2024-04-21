@@ -47,11 +47,11 @@ let coordinates = Coordinates::new(40.7128, -74.0059);
 #### Date
 
 To avoid confusion with timezones the date parameter passed in should be an instance of
-`Date<Utc>`. The year, month, and day components need to be populated. All other
+`NaiveDate`. The year, month, and day components need to be populated. All other
 components will be ignored.
 
 ```rust
-let date = Utc.ymd(2019, 1, 25);
+let date = NaiveDate::from_ymd_opt(2019, 1, 25);
 ```
 
 #### Configuration
@@ -160,7 +160,7 @@ This is an enum and has variants for all prayers, including, *sunrise* and *Qiya
 use salah::prelude::*;
 
 let new_york_city = Coordinates::new(40.7128, -74.0059);
-let date          = Utc.ymd(2019, 1, 25);
+let date          = NaiveDate::from_ymd_opt(2019, 1, 25).expect("Invalid date provided.");
 let params        = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
 let prayers       = PrayerSchedule::new()
                         .on(date)
