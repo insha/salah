@@ -28,7 +28,7 @@ pub trait Stride {
     fn julian_day(&self) -> f64;
     fn adjust_time(&self, minutes: i64) -> Self;
     fn next_date(&self, fwd: bool) -> Self;
-	fn rounded_minute(&self, rounding: Rounding) -> Self;
+    fn rounded_minute(&self, rounding: Rounding) -> Self;
 }
 
 impl<Tz: TimeZone> Stride for DateTime<Tz> {
@@ -52,29 +52,29 @@ impl<Tz: TimeZone> Stride for DateTime<Tz> {
         )
     }
 
-	fn rounded_minute(&self, rounding: Rounding) -> Self {
-		let adjusted = self.clone();
-		let seconds = adjusted.second();
-		
-		match rounding {
-			Rounding::Nearest => {
-				let rounded = ((seconds as f64)/60.0).round() as i64;
-				let adjusted_seconds = seconds as i64;
-				
-				if rounded == 1 {
-					adjusted + Duration::seconds(60 - adjusted_seconds)
-				} else {
-					adjusted + Duration::seconds(adjusted_seconds * -1)
-				}
-			},
-			Rounding::Up => {
-				let adjusted_seconds = seconds as i64;
-				
-				adjusted + Duration::seconds(60 - adjusted_seconds)
-			},
-			Rounding::None => adjusted,
-		}
-	}
+    fn rounded_minute(&self, rounding: Rounding) -> Self {
+        let adjusted = self.clone();
+        let seconds = adjusted.second();
+
+        match rounding {
+            Rounding::Nearest => {
+                let rounded = ((seconds as f64) / 60.0).round() as i64;
+                let adjusted_seconds = seconds as i64;
+
+                if rounded == 1 {
+                    adjusted + Duration::seconds(60 - adjusted_seconds)
+                } else {
+                    adjusted + Duration::seconds(adjusted_seconds * -1)
+                }
+            }
+            Rounding::Up => {
+                let adjusted_seconds = seconds as i64;
+
+                adjusted + Duration::seconds(60 - adjusted_seconds)
+            }
+            Rounding::None => adjusted,
+        }
+    }
 
     fn adjust_time(&self, minutes: i64) -> Self {
         let some_date = self.clone();
@@ -287,26 +287,49 @@ mod tests {
 
         assert_eq!((angle_a + angle_b).degrees, 90.0);
     }
-	
-	#[test]
-	fn calculate_rounding_nearest() {
-        let time_1 = Utc.ymd(2015, 7, 13).and_hms(4, 37, 30);
-        
-		assert_eq!(time_1.rounded_minute(Rounding::Nearest), Utc.ymd(2015, 7, 13).and_hms(4, 38, 00));
-	}
-	
-	#[test]
-	fn calculate_rounding_up() {
-		let time_1 = Utc.ymd(2015, 07, 13).and_hms(05, 59, 20);
-		
-		assert_eq!(time_1.rounded_minute(Rounding::Up), Utc.ymd(2015, 7, 13).and_hms(6, 00, 00));
-	}
-	
-	#[test]
-	fn calculate_rounding_none() {
-		let time_1 = Utc.ymd(2015, 07, 13).and_hms(05, 59, 20);
-		
-		assert_eq!(time_1.rounded_minute(Rounding::None), Utc.ymd(2015, 7, 13).and_hms(5, 59, 20));
-	}
-	
+
+    #[test]
+    fn calculate_rounding_nearest() {
+        let time_1 = Utc
+            .with_ymd_and_hms(2015, 7, 13, 4, 37, 30)
+            .single()
+            .expect("Invalid date and time.");
+
+        assert_eq!(
+            time_1.rounded_minute(Rounding::Nearest),
+            Utc.with_ymd_and_hms(2015, 7, 13, 4, 38, 00)
+                .single()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn calculate_rounding_up() {
+        let time_1 = Utc
+            .with_ymd_and_hms(2015, 07, 13, 05, 59, 20)
+            .single()
+            .expect("Invalid date and time.");
+
+        assert_eq!(
+            time_1.rounded_minute(Rounding::Up),
+            Utc.with_ymd_and_hms(2015, 7, 13, 6, 00, 00)
+                .single()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn calculate_rounding_none() {
+        let time_1 = Utc
+            .with_ymd_and_hms(2015, 07, 13, 05, 59, 20)
+            .single()
+            .expect("Invalid date and time.");
+
+        assert_eq!(
+            time_1.rounded_minute(Rounding::None),
+            Utc.with_ymd_and_hms(2015, 7, 13, 5, 59, 20)
+                .single()
+                .unwrap()
+        );
+    }
 }

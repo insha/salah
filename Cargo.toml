@@ -16,4 +16,4 @@ license = "MIT"
 spectral = "0.6.0"
 
 [dependencies]
-chrono = "0.4.6"
+chrono = "0.4.38"

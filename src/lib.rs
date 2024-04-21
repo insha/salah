@@ -14,7 +14,7 @@
 //! use salah::prelude::*;
 //!
 //! let new_york_city = Coordinates::new(40.7128, -74.0059);
-//! let date          = Utc.ymd(2019, 1, 25);
+//! let date          = NaiveDate::from_ymd_opt(2019, 1, 25).expect("Invalid date provided");
 //! let params        = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
 //! let prayers       = PrayerSchedule::new()
 //!                       .on(date)
@@ -34,7 +34,7 @@ pub use crate::models::method::Method;
 pub use crate::models::parameters::{Configuration, Parameters};
 pub use crate::models::prayer::Prayer;
 pub use crate::schedule::{PrayerSchedule, PrayerTimes};
-pub use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc};
+pub use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc};
 
 /// A convenience module appropriate for glob imports (`use salah::prelude::*;`).
 pub mod prelude {
@@ -55,7 +55,7 @@ pub mod prelude {
     #[doc(no_inline)]
     pub use crate::schedule::{PrayerSchedule, PrayerTimes};
     #[doc(no_inline)]
-    pub use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone, Timelike, Utc};
+    pub use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc};
 }
 
 #[cfg(test)]
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn calculate_prayer_times() {
-        let local_date = Utc.ymd(2015, 7, 12);
+        let local_date = NaiveDate::from_ymd_opt(2015, 7, 12).expect("Invalid date provided");
         let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let schedule = PrayerTimes::new(local_date, coordinates, params);
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn calculate_times_using_the_builder_successfully() {
-        let date = Utc.ymd(2015, 7, 12);
+        let date = NaiveDate::from_ymd_opt(2015, 7, 12).expect("Invalid date provided");
         let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let result = PrayerSchedule::new()
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn calculate_times_using_the_builder_failure() {
-        let date = Utc.ymd(2015, 7, 12);
+        let date = NaiveDate::from_ymd_opt(2015, 7, 12).expect("Invalid date provided");
         let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
         let result = PrayerSchedule::new()
             .on(date)
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn calculate_qiyam_times() {
-        let date = Utc.ymd(2015, 7, 12);
+        let date = NaiveDate::from_ymd_opt(2015, 7, 12).expect("Invalid date provided");
         let params = Configuration::with(Method::NorthAmerica, Madhab::Hanafi);
         let coordinates = Coordinates::new(35.7750, -78.6336);
         let result = PrayerSchedule::new()
@@ -207,7 +207,7 @@ mod tests {
         params.high_latitude_rule = HighLatitudeRule::MiddleOfTheNight;
 
         let result = PrayerSchedule::new()
-            .on(Utc.ymd(2021, 1, 13))
+            .on(NaiveDate::from_ymd_opt(2021, 1, 13).expect("Invalid date provided"))
             .for_location(Coordinates::new(1.370844612058886, 103.80145644060552))
             .with_configuration(params)
             .calculate();
@@ -215,7 +215,7 @@ mod tests {
         match result {
             Ok(schedule) => {
                 let hour = 3600;
-                let sgt_offset = FixedOffset::east(8 * hour);
+                let sgt_offset = FixedOffset::east_opt(8 * hour).expect("Invalid offset provided");
                 let sgt_fajr = schedule.time(Prayer::Fajr).with_timezone(&sgt_offset);
                 let sgt_sunrise = schedule.time(Prayer::Sunrise).with_timezone(&sgt_offset);
                 let sgt_dhuhr = schedule.time(Prayer::Dhuhr).with_timezone(&sgt_offset);
@@ -256,7 +256,7 @@ mod tests {
             .done();
 
         let result = PrayerSchedule::new()
-            .on(Utc.ymd(2021, 1, 12))
+            .on(NaiveDate::from_ymd_opt(2021, 1, 12).expect("Invalid date provided"))
             .for_location(Coordinates::new(-6.18233995, 106.84287154))
             .with_configuration(params)
             .calculate();
@@ -264,7 +264,7 @@ mod tests {
         match result {
             Ok(schedule) => {
                 let hour = 3600;
-                let wib_offset = FixedOffset::east(7 * hour);
+                let wib_offset = FixedOffset::east_opt(7 * hour).expect("Invalid offset provided");
                 let wib_fajr = schedule.time(Prayer::Fajr).with_timezone(&wib_offset);
                 let wib_sunrise = schedule.time(Prayer::Sunrise).with_timezone(&wib_offset);
                 let wib_dhuhr = schedule.time(Prayer::Dhuhr).with_timezone(&wib_offset);
