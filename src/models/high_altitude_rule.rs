@@ -3,10 +3,14 @@
 // See LICENSE for more details.
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::astronomy::unit::Coordinates;
 
 /// Rule for approximating Fajr and Isha at high latitudes
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum HighLatitudeRule {
     /// Fajr won't be earlier than the midpoint of the night and isha

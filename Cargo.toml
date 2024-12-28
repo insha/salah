@@ -17,3 +17,6 @@ spectral = "0.6.0"
 
 [dependencies]
 chrono = "0.4.38"
+serde = { version = "1.0.216", features = ["derive"] ,optional = true}
+[features]
+serde = ["dep:serde"]

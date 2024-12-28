@@ -3,6 +3,8 @@
 // See LICENSE for more details.
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use super::adjustments::TimeAdjustment;
 use super::high_altitude_rule::HighLatitudeRule;
@@ -17,6 +19,7 @@ use super::shafaq::Shafaq;
 ///
 /// It is recommended to use [Configuration](struct.Configuration.html) to build
 /// the parameters that are need.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Parameters {
     pub method: Method,
