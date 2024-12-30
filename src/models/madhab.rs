@@ -3,10 +3,14 @@
 // See LICENSE for more details.
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /// Setting for the Asr prayer time.
 /// For Hanafi madhab, the Asr is bit later
 /// than that of the Shafi madhab.
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Madhab {
     Shafi = 1,
