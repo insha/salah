@@ -34,7 +34,9 @@ pub use crate::models::method::Method;
 pub use crate::models::parameters::{Configuration, Parameters};
 pub use crate::models::prayer::Prayer;
 pub use crate::schedule::{PrayerSchedule, PrayerTimes};
-pub use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc};
+pub use chrono::{
+    DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc, Weekday,
+};
 
 /// A convenience module appropriate for glob imports (`use salah::prelude::*;`).
 pub mod prelude {
@@ -55,7 +57,9 @@ pub mod prelude {
     #[doc(no_inline)]
     pub use crate::schedule::{PrayerSchedule, PrayerTimes};
     #[doc(no_inline)]
-    pub use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc};
+    pub use chrono::{
+        DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc, Weekday,
+    };
 }
 
 #[cfg(test)]
