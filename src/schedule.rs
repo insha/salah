@@ -176,19 +176,6 @@ impl PrayerTimes {
         coordinates: Coordinates,
         prayer_date: DateTime<Utc>,
     ) -> DateTime<Utc> {
-        let mut fajr = solar_time.time_for_solar_angle(Angle::new(-parameters.fajr_angle), false);
-
-        // special case for moonsighting committee above latitude 55
-        if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
-            let night_fraction = night.num_seconds() / 7;
-            fajr = solar_time
-                .sunrise
-                .checked_add_signed(Duration::seconds(-night_fraction))
-                .unwrap();
-        } else {
-            // Nothing to do.
-        }
-
         let safe_fajr = if parameters.method == Method::MoonsightingCommittee {
             let day_of_year = prayer_date.ordinal();
             ops::season_adjusted_morning_twilight(
@@ -206,6 +193,21 @@ impl PrayerTimes {
                 .checked_add_signed(Duration::seconds(-night_fraction as i64))
                 .unwrap()
         };
+
+        let mut fajr = solar_time
+            .time_for_solar_angle(Angle::new(-parameters.fajr_angle), false)
+            .unwrap_or(safe_fajr);
+
+        // special case for moonsighting committee above latitude 55
+        if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
+            let night_fraction = night.num_seconds() / 7;
+            fajr = solar_time
+                .sunrise
+                .checked_add_signed(Duration::seconds(-night_fraction))
+                .unwrap();
+        } else {
+            // Nothing to do.
+        }
 
         if fajr < safe_fajr {
             fajr = safe_fajr;
@@ -231,19 +233,6 @@ impl PrayerTimes {
                 .checked_add_signed(Duration::seconds((parameters.isha_interval * 60) as i64))
                 .unwrap();
         } else {
-            isha = solar_time.time_for_solar_angle(Angle::new(-parameters.isha_angle), true);
-
-            // special case for moonsighting committee above latitude 55
-            if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
-                let night_fraction = night.num_seconds() / 7;
-                isha = solar_time
-                    .sunset
-                    .checked_add_signed(Duration::seconds(night_fraction))
-                    .unwrap();
-            } else {
-                // Nothing to do.
-            }
-
             let safe_isha = if parameters.method == Method::MoonsightingCommittee {
                 let day_of_year = prayer_date.ordinal();
 
@@ -263,6 +252,21 @@ impl PrayerTimes {
                     .checked_add_signed(Duration::seconds(night_fraction as i64))
                     .unwrap()
             };
+
+            isha = solar_time
+                .time_for_solar_angle(Angle::new(-parameters.isha_angle), true)
+                .unwrap_or(safe_isha);
+
+            // special case for moonsighting committee above latitude 55
+            if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
+                let night_fraction = night.num_seconds() / 7;
+                isha = solar_time
+                    .sunset
+                    .checked_add_signed(Duration::seconds(night_fraction))
+                    .unwrap();
+            } else {
+                // Nothing to do.
+            }
 
             if isha > safe_isha {
                 isha = safe_isha;
