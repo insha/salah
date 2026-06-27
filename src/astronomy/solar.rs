@@ -159,7 +159,7 @@ impl SolarTime {
         }
     }
 
-    pub fn time_for_solar_angle(&self, angle: Angle, after_transit: bool) -> DateTime<Utc> {
+    pub fn time_for_solar_angle(&self, angle: Angle, after_transit: bool) -> Option<DateTime<Utc>> {
         let hours = ops::corrected_hour_angle(
             self.approx_transit,
             angle,
@@ -174,7 +174,7 @@ impl SolarTime {
             self.next_solar.declination,
         );
 
-        SolarTime::setting_hour(hours, &self.date).unwrap()
+        SolarTime::setting_hour(hours, &self.date)
     }
 
     pub fn afternoon(&self, shadow_length: f64) -> DateTime<Utc> {
@@ -183,7 +183,7 @@ impl SolarTime {
         let inverse = shadow_length + tangent.radians().tan();
         let angle = Angle::from_radians((1.0 / inverse).atan());
 
-        self.time_for_solar_angle(angle, true)
+        self.time_for_solar_angle(angle, true).unwrap_or(self.transit)
     }
 
     fn setting_hour(value: f64, date: &DateTime<Utc>) -> Option<DateTime<Utc>> {
@@ -318,8 +318,8 @@ mod tests {
             .expect("Invalida date and time provided");
         let solar = SolarTime::new(date, coordinates);
         let angle = Angle::new(-6.0);
-        let twilight_start = solar.time_for_solar_angle(angle, false);
-        let twilight_end = solar.time_for_solar_angle(angle, true);
+        let twilight_start = solar.time_for_solar_angle(angle, false).unwrap();
+        let twilight_end = solar.time_for_solar_angle(angle, true).unwrap();
 
         assert_eq!(twilight_start.format("%-k:%M").to_string(), "9:38");
         assert_eq!(twilight_end.format("%-k:%M").to_string(), "1:02");
