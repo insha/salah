@@ -47,7 +47,9 @@ impl PrayerTimes {
         let solar_time = SolarTime::new(prayer_date, coordinates);
         let solar_time_tomorrow = SolarTime::new(tomorrow, coordinates);
 
-        let asr = solar_time.afternoon(parameters.madhab.shadow().into());
+        let asr = solar_time
+            .afternoon(parameters.madhab.shadow().into())
+            .unwrap_or(solar_time.transit);
         let night = solar_time_tomorrow
             .sunrise
             .signed_duration_since(solar_time.sunset);
@@ -176,19 +178,6 @@ impl PrayerTimes {
         coordinates: Coordinates,
         prayer_date: DateTime<Utc>,
     ) -> DateTime<Utc> {
-        let mut fajr = solar_time.time_for_solar_angle(Angle::new(-parameters.fajr_angle), false);
-
-        // special case for moonsighting committee above latitude 55
-        if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
-            let night_fraction = night.num_seconds() / 7;
-            fajr = solar_time
-                .sunrise
-                .checked_add_signed(Duration::seconds(-night_fraction))
-                .unwrap();
-        } else {
-            // Nothing to do.
-        }
-
         let safe_fajr = if parameters.method == Method::MoonsightingCommittee {
             let day_of_year = prayer_date.ordinal();
             ops::season_adjusted_morning_twilight(
@@ -206,6 +195,21 @@ impl PrayerTimes {
                 .checked_add_signed(Duration::seconds(-night_fraction as i64))
                 .unwrap()
         };
+
+        let mut fajr = solar_time
+            .time_for_solar_angle(Angle::new(-parameters.fajr_angle), false)
+            .unwrap_or(safe_fajr);
+
+        // special case for moonsighting committee above latitude 55
+        if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
+            let night_fraction = night.num_seconds() / 7;
+            fajr = solar_time
+                .sunrise
+                .checked_add_signed(Duration::seconds(-night_fraction))
+                .unwrap();
+        } else {
+            // Nothing to do.
+        }
 
         if fajr < safe_fajr {
             fajr = safe_fajr;
@@ -231,19 +235,6 @@ impl PrayerTimes {
                 .checked_add_signed(Duration::seconds((parameters.isha_interval * 60) as i64))
                 .unwrap();
         } else {
-            isha = solar_time.time_for_solar_angle(Angle::new(-parameters.isha_angle), true);
-
-            // special case for moonsighting committee above latitude 55
-            if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
-                let night_fraction = night.num_seconds() / 7;
-                isha = solar_time
-                    .sunset
-                    .checked_add_signed(Duration::seconds(night_fraction))
-                    .unwrap();
-            } else {
-                // Nothing to do.
-            }
-
             let safe_isha = if parameters.method == Method::MoonsightingCommittee {
                 let day_of_year = prayer_date.ordinal();
 
@@ -263,6 +254,21 @@ impl PrayerTimes {
                     .checked_add_signed(Duration::seconds(night_fraction as i64))
                     .unwrap()
             };
+
+            isha = solar_time
+                .time_for_solar_angle(Angle::new(-parameters.isha_angle), true)
+                .unwrap_or(safe_isha);
+
+            // special case for moonsighting committee above latitude 55
+            if parameters.method == Method::MoonsightingCommittee && coordinates.latitude >= 55.0 {
+                let night_fraction = night.num_seconds() / 7;
+                isha = solar_time
+                    .sunset
+                    .checked_add_signed(Duration::seconds(night_fraction))
+                    .unwrap();
+            } else {
+                // Nothing to do.
+            }
 
             if isha > safe_isha {
                 isha = safe_isha;
@@ -356,8 +362,8 @@ impl PrayerSchedule {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::madhab::Madhab;
     use crate::Configuration;
+    use crate::models::madhab::Madhab;
     use chrono::{NaiveDate, TimeZone, Utc};
 
     #[test]
@@ -552,6 +558,126 @@ mod tests {
                 assert_eq!(
                     schedule.time(Prayer::Isha).format("%-l:%M %p").to_string(),
                     "4:02 PM"
+                );
+            }
+
+            Err(_err) => assert!(false),
+        }
+    }
+
+    #[test]
+    fn calculate_times_for_muslim_world_league_with_high_latitude_for_paris_france() {
+        let date = NaiveDate::from_ymd_opt(2026, 06, 21).expect("Invalid date provided");
+        let mut params = Configuration::with(Method::MuslimWorldLeague, Madhab::Shafi);
+
+        params.high_latitude_rule =
+            crate::models::high_altitude_rule::HighLatitudeRule::SeventhOfTheNight;
+        params.rounding = Rounding::Nearest;
+
+        let coordinates = Coordinates::new(48.8566, 2.3522);
+        let result = PrayerSchedule::new()
+            .on(date)
+            .for_location(coordinates)
+            .with_configuration(params)
+            .calculate();
+
+        match result {
+            Ok(schedule) => {
+                // Fajr     2026-06-21 02:40 UTC
+                // Sunrise  2026-06-21 03:47 UTC
+                // Dhuhr    2026-06-21 11:53 UTC
+                // Asr      2026-06-21 16:10 UTC
+                // Maghrib  2026-06-21 19:58 UTC
+                // Isha     2026-06-21 21:05 UTC
+                assert_eq!(
+                    schedule.time(Prayer::Fajr).format("%-l:%M %p").to_string(),
+                    "2:40 AM"
+                );
+                assert_eq!(
+                    schedule
+                        .time(Prayer::Sunrise)
+                        .format("%-l:%M %p")
+                        .to_string(),
+                    "3:47 AM"
+                );
+                assert_eq!(
+                    schedule.time(Prayer::Dhuhr).format("%-l:%M %p").to_string(),
+                    "11:53 AM"
+                );
+                assert_eq!(
+                    schedule.time(Prayer::Asr).format("%-l:%M %p").to_string(),
+                    "4:10 PM"
+                );
+                assert_eq!(
+                    schedule
+                        .time(Prayer::Maghrib)
+                        .format("%-l:%M %p")
+                        .to_string(),
+                    "7:58 PM"
+                );
+                assert_eq!(
+                    schedule.time(Prayer::Isha).format("%-l:%M %p").to_string(),
+                    "9:05 PM"
+                );
+            }
+
+            Err(_err) => assert!(false),
+        }
+    }
+
+    #[test]
+    fn calculate_times_for_muslim_world_league_with_high_latitude_for_brussels_belgium() {
+        let date = NaiveDate::from_ymd_opt(2026, 06, 21).expect("Invalid date provided");
+        let mut params = Configuration::with(Method::MuslimWorldLeague, Madhab::Shafi);
+
+        params.high_latitude_rule =
+            crate::models::high_altitude_rule::HighLatitudeRule::SeventhOfTheNight;
+        params.rounding = Rounding::Nearest;
+
+        let coordinates = Coordinates::new(50.85, 4.35);
+        let result = PrayerSchedule::new()
+            .on(date)
+            .for_location(coordinates)
+            .with_configuration(params)
+            .calculate();
+
+        match result {
+            Ok(schedule) => {
+                // Fajr	    2026-06-21 02:25 UTC
+                // Sunrise	2026-06-21 03:29 UTC
+                // Dhuhr	2026-06-21 11:45 UTC
+                // Asr	    2026-06-21 16:06 UTC
+                // Maghrib	2026-06-21 20:00 UTC
+                // Isha	    2026-06-21 21:04 UTC
+                assert_eq!(
+                    schedule.time(Prayer::Fajr).format("%-l:%M %p").to_string(),
+                    "2:25 AM"
+                );
+                assert_eq!(
+                    schedule
+                        .time(Prayer::Sunrise)
+                        .format("%-l:%M %p")
+                        .to_string(),
+                    "3:29 AM"
+                );
+                assert_eq!(
+                    schedule.time(Prayer::Dhuhr).format("%-l:%M %p").to_string(),
+                    "11:45 AM"
+                );
+                assert_eq!(
+                    schedule.time(Prayer::Asr).format("%-l:%M %p").to_string(),
+                    "4:06 PM"
+                );
+                assert_eq!(
+                    schedule
+                        .time(Prayer::Maghrib)
+                        .format("%-l:%M %p")
+                        .to_string(),
+                    "8:00 PM"
+                );
+                assert_eq!(
+                    schedule.time(Prayer::Isha).format("%-l:%M %p").to_string(),
+                    "9:04 PM"
                 );
             }
 
