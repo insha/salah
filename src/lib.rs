@@ -29,6 +29,7 @@ mod schedule;
 
 pub use crate::astronomy::unit::{Coordinates, Stride};
 pub use crate::models::adjustments::{Adjustment, TimeAdjustment};
+pub use crate::models::high_altitude_rule::HighLatitudeRule;
 pub use crate::models::madhab::Madhab;
 pub use crate::models::method::Method;
 pub use crate::models::parameters::{Configuration, Parameters};
@@ -46,6 +47,8 @@ pub mod prelude {
     pub use crate::astronomy::unit::{Coordinates, Stride};
     #[doc(no_inline)]
     pub use crate::models::adjustments::{Adjustment, TimeAdjustment};
+    #[doc(no_inline)]
+    pub use crate::models::high_altitude_rule::HighLatitudeRule;
     #[doc(no_inline)]
     pub use crate::models::madhab::Madhab;
     #[doc(no_inline)]
@@ -65,7 +68,6 @@ pub mod prelude {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::high_altitude_rule::HighLatitudeRule;
     use chrono::prelude::*;
 
     #[test]
