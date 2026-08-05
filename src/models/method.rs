@@ -7,9 +7,12 @@
 use super::adjustments::Adjustment;
 use super::parameters::{Configuration, Parameters};
 use super::rounding::Rounding;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Method {
     /// Muslim World League. Standard Fajr time with an angle of 18°.

@@ -5,9 +5,12 @@
 //
 
 use chrono::{Datelike, Utc, Weekday};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /// Names of all obligatory prayers,
 /// sunrise, and Qiyam.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Prayer {
     Fajr,

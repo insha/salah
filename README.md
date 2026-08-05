@@ -18,6 +18,13 @@ Add the following to your `Cargo.toml` file under the `[dependencies]` section:
 salah = "0.7.6"
 ```
 
+If you need the output to be serialized/deserialized, you can use the `serde` feature in your `dependencies` section:
+
+```
+[dependencies]
+salah = { version = "0.7.6", features = ["serde"] }
+```
+
 To get prayer times, use the `PrayerSchedule` struct passing in coordinates, date, and calculation parameters.
 
 ```rust

@@ -22,6 +22,11 @@
 //!                       .with_configuration(params)
 //!                       .calculate();
 //! ```
+//!
+//! ## Crate Features
+//!
+//! This crate exposes a feature for serialization and deserialization of the output using the `serde` crate. This
+//! functionality is optional and opt-in by adding the `serde` dependency.
 
 mod astronomy;
 mod models;

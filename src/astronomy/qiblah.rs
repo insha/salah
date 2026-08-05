@@ -6,8 +6,12 @@
 
 use std::fmt;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::astronomy::unit::{Angle, Coordinates};
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct Qiblah(f64);
 
@@ -29,7 +33,7 @@ impl Qiblah {
 
         Qiblah(Angle::from_radians(term4).unwound().degrees)
     }
-    
+
     pub fn value(&self) -> f64 {
         self.0
     }
@@ -40,7 +44,6 @@ impl fmt::Display for Qiblah {
         write!(f, "{}", self.value())
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -142,7 +145,7 @@ mod tests {
 
         assert_that!(qiblah.value()).is_close_to(295.1442983825265, 0.0000001f64);
     }
-    
+
     #[test]
     fn qiblah_direction_display() {
         let nyc = Coordinates::new(40.7128, -74.0059);
