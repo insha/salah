@@ -33,6 +33,7 @@ pub use crate::models::high_altitude_rule::HighLatitudeRule;
 pub use crate::models::madhab::Madhab;
 pub use crate::models::method::Method;
 pub use crate::models::parameters::{Configuration, Parameters};
+pub use crate::models::polar_estimation::PolarEstimation;
 pub use crate::models::prayer::Prayer;
 pub use crate::schedule::{PrayerSchedule, PrayerTimes};
 pub use chrono::{
@@ -55,6 +56,8 @@ pub mod prelude {
     pub use crate::models::method::Method;
     #[doc(no_inline)]
     pub use crate::models::parameters::{Configuration, Parameters};
+    #[doc(no_inline)]
+    pub use crate::models::polar_estimation::PolarEstimation;
     #[doc(no_inline)]
     pub use crate::models::prayer::Prayer;
     #[doc(no_inline)]

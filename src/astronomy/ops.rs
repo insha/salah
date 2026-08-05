@@ -8,8 +8,8 @@ use chrono::{DateTime, Duration, Utc};
 
 use crate::astronomy::unit::{Angle, Coordinates};
 use crate::astronomy::unit::{Normalize, Stride};
-use crate::models::shafaq::Shafaq;
 use crate::models::rounding::Rounding;
+use crate::models::shafaq::Shafaq;
 
 // The geometric mean longitude of the sun.
 pub fn mean_solar_longitude(julian_century: f64) -> Angle {

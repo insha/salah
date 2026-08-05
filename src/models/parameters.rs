@@ -8,6 +8,7 @@ use super::adjustments::TimeAdjustment;
 use super::high_altitude_rule::HighLatitudeRule;
 use super::madhab::Madhab;
 use super::method::Method;
+use super::polar_estimation::PolarEstimation;
 use super::prayer::Prayer;
 use super::rounding::Rounding;
 use super::shafaq::Shafaq;
@@ -26,6 +27,7 @@ pub struct Parameters {
     pub isha_interval: i32,
     pub madhab: Madhab,
     pub high_latitude_rule: HighLatitudeRule,
+    pub polar_estimation: PolarEstimation,
     pub adjustments: TimeAdjustment,
     pub method_adjustments: TimeAdjustment,
     pub rounding: Rounding,
@@ -42,6 +44,7 @@ impl Parameters {
             isha_interval: 0,
             madhab: Madhab::Shafi,
             high_latitude_rule: HighLatitudeRule::MiddleOfTheNight,
+            polar_estimation: PolarEstimation::NearestLatitude,
             adjustments: TimeAdjustment::default(),
             method_adjustments: TimeAdjustment::default(),
             rounding: Rounding::Nearest,
@@ -82,6 +85,7 @@ pub struct Configuration {
     isha_interval: i32,
     madhab: Madhab,
     high_latitude_rule: HighLatitudeRule,
+    polar_estimation: PolarEstimation,
     adjustments: TimeAdjustment,
     method_adjustments: TimeAdjustment,
     rounding: Rounding,
@@ -98,6 +102,7 @@ impl Configuration {
             isha_interval: 0,
             madhab: Madhab::Shafi,
             high_latitude_rule: HighLatitudeRule::MiddleOfTheNight,
+            polar_estimation: PolarEstimation::NearestLatitude,
             adjustments: TimeAdjustment::default(),
             method_adjustments: TimeAdjustment::default(),
             rounding: Rounding::Nearest,
@@ -130,6 +135,14 @@ impl Configuration {
         high_latitude_rule: HighLatitudeRule,
     ) -> &'a mut Configuration {
         self.high_latitude_rule = high_latitude_rule;
+        self
+    }
+
+    pub fn polar_estimation<'a>(
+        &'a mut self,
+        polar_estimation: PolarEstimation,
+    ) -> &'a mut Configuration {
+        self.polar_estimation = polar_estimation;
         self
     }
 
@@ -168,6 +181,7 @@ impl Configuration {
             isha_interval: self.isha_interval,
             madhab: self.madhab,
             high_latitude_rule: self.high_latitude_rule,
+            polar_estimation: self.polar_estimation,
             adjustments: self.adjustments,
             method_adjustments: self.method_adjustments,
             rounding: self.rounding,
