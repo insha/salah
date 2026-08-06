@@ -24,10 +24,6 @@ pub enum PolarEstimation {
 }
 
 impl PolarEstimation {
-    pub fn recommended(_coordinates: Coordinates) -> PolarEstimation {
-        PolarEstimation::NearestLatitude
-    }
-
     // Solar calculations for a single day of prayer times touch today,
     // tomorrow and the day after tomorrow, so all three must succeed
     // before the original coordinates are kept.
@@ -54,25 +50,26 @@ impl PolarEstimation {
 fn nearest_working_latitude(date: DateTime<Utc>, coordinates: Coordinates) -> Coordinates {
     let tomorrow = date.tomorrow();
     let day_after_tomorrow = tomorrow.tomorrow();
-    let sign = coordinates.latitude.signum();
-    let mut lo = 0.0_f64;
-    let mut hi = coordinates.latitude.abs();
+    let latitude_sign = coordinates.latitude.signum();
+    let mut lower_bound = 0.0_f64;
+    let mut upper_bound = coordinates.latitude.abs();
 
     for _ in 0..24 {
-        let mid = (lo + hi) / 2.0;
-        let test = Coordinates::new(mid * sign, coordinates.longitude);
+        let probe_latitude = (lower_bound + upper_bound) / 2.0;
+        let probe_coordinates =
+            Coordinates::new(probe_latitude * latitude_sign, coordinates.longitude);
 
-        if SolarTime::new(date, test).is_ok()
-            && SolarTime::new(tomorrow, test).is_ok()
-            && SolarTime::new(day_after_tomorrow, test).is_ok()
+        if SolarTime::new(date, probe_coordinates).is_ok()
+            && SolarTime::new(tomorrow, probe_coordinates).is_ok()
+            && SolarTime::new(day_after_tomorrow, probe_coordinates).is_ok()
         {
-            lo = mid;
+            lower_bound = probe_latitude;
         } else {
-            hi = mid;
+            upper_bound = probe_latitude;
         }
     }
 
-    Coordinates::new(lo * sign, coordinates.longitude)
+    Coordinates::new(lower_bound * latitude_sign, coordinates.longitude)
 }
 
 #[cfg(test)]
@@ -86,16 +83,6 @@ mod tests {
             .and_hms_opt(0, 0, 0)
             .expect("Invalid time provided")
             .and_utc()
-    }
-
-    #[test]
-    fn recommended_strategy_is_nearest_latitude() {
-        let coordinates = Coordinates::new(69.6492, 18.9553);
-
-        assert_eq!(
-            PolarEstimation::recommended(coordinates),
-            PolarEstimation::NearestLatitude
-        );
     }
 
     #[test]
