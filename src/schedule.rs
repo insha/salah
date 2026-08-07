@@ -44,8 +44,13 @@ impl PrayerTimes {
             .expect("Invalid date provided")
             .and_utc();
         let tomorrow = prayer_date.tomorrow();
-        let solar_time = SolarTime::new(prayer_date, coordinates);
-        let solar_time_tomorrow = SolarTime::new(tomorrow, coordinates);
+        let resolved_coordinates = parameters
+            .polar_estimation
+            .resolve_coordinates(prayer_date, coordinates);
+        let solar_time = SolarTime::new(prayer_date, resolved_coordinates)
+            .expect("Resolved coordinates always have solar times");
+        let solar_time_tomorrow = SolarTime::new(tomorrow, resolved_coordinates)
+            .expect("Resolved coordinates always have solar times");
 
         let asr = solar_time
             .afternoon(parameters.madhab.shadow().into())
@@ -54,9 +59,14 @@ impl PrayerTimes {
             .sunrise
             .signed_duration_since(solar_time.sunset);
 
-        let final_fajr =
-            PrayerTimes::calculate_fajr(parameters, solar_time, night, coordinates, prayer_date)
-                .rounded_minute(parameters.rounding);
+        let final_fajr = PrayerTimes::calculate_fajr(
+            parameters,
+            solar_time,
+            night,
+            resolved_coordinates,
+            prayer_date,
+        )
+        .rounded_minute(parameters.rounding);
         let final_sunrise = solar_time
             .sunrise
             .adjust_time(parameters.time_adjustments(Prayer::Sunrise))
@@ -73,9 +83,14 @@ impl PrayerTimes {
             parameters.time_adjustments(Prayer::Maghrib),
         )
         .rounded_minute(parameters.rounding);
-        let final_isha =
-            PrayerTimes::calculate_isha(parameters, solar_time, night, coordinates, prayer_date)
-                .rounded_minute(parameters.rounding);
+        let final_isha = PrayerTimes::calculate_isha(
+            parameters,
+            solar_time,
+            night,
+            resolved_coordinates,
+            prayer_date,
+        )
+        .rounded_minute(parameters.rounding);
 
         // Calculate the middle of the night and qiyam times
         let (final_middle_of_night, final_qiyam, final_fajr_tomorrow) =
@@ -83,7 +98,7 @@ impl PrayerTimes {
                 final_maghrib,
                 parameters,
                 solar_time_tomorrow,
-                coordinates,
+                resolved_coordinates,
                 tomorrow,
             );
 
@@ -97,7 +112,7 @@ impl PrayerTimes {
             middle_of_the_night: final_middle_of_night,
             qiyam: final_qiyam,
             fajr_tomorrow: final_fajr_tomorrow,
-            coordinates: coordinates,
+            coordinates: resolved_coordinates,
             date: prayer_date,
             parameters: parameters,
         }
@@ -288,7 +303,8 @@ impl PrayerTimes {
         prayer_date: DateTime<Utc>,
     ) -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
         let tomorrow = prayer_date.tomorrow();
-        let solar_time_tomorrow = SolarTime::new(tomorrow, coordinates);
+        let solar_time_tomorrow = SolarTime::new(tomorrow, coordinates)
+            .expect("Resolved coordinates always have solar times");
         let night = solar_time_tomorrow
             .sunrise
             .signed_duration_since(solar_time.sunset);
@@ -682,6 +698,58 @@ mod tests {
             }
 
             Err(_err) => assert!(false),
+        }
+    }
+
+    #[test]
+    fn calculate_times_for_polar_day_does_not_panic() {
+        let date = NaiveDate::from_ymd_opt(2026, 06, 21).expect("Invalid date provided");
+        let params = Configuration::with(Method::MuslimWorldLeague, Madhab::Shafi);
+        let coordinates = Coordinates::new(69.6492, 18.9553);
+
+        let times = PrayerTimes::new(date, coordinates, params);
+
+        assert!(
+            times.time(Prayer::Sunrise) < times.time(Prayer::Maghrib),
+            "Expected the resolved coordinates to have a sunrise before maghrib"
+        );
+    }
+
+    #[test]
+    fn calculate_times_for_polar_night_does_not_panic() {
+        let date = NaiveDate::from_ymd_opt(2026, 06, 21).expect("Invalid date provided");
+        let params = Configuration::with(Method::MuslimWorldLeague, Madhab::Shafi);
+        let coordinates = Coordinates::new(-69.0, 158.9);
+
+        let times = PrayerTimes::new(date, coordinates, params);
+
+        assert!(
+            times.time(Prayer::Fajr) < times.time(Prayer::Isha),
+            "Expected the resolved coordinates to have a fajr before isha"
+        );
+    }
+
+    #[test]
+    fn calculate_times_for_polar_day_with_reference_45_match_reference_latitude() {
+        let date = NaiveDate::from_ymd_opt(2026, 06, 21).expect("Invalid date provided");
+        let mut params = Configuration::with(Method::MuslimWorldLeague, Madhab::Shafi);
+        params.polar_estimation = crate::models::polar_estimation::PolarEstimation::Reference45;
+
+        let coordinates = Coordinates::new(69.6492, 18.9553);
+        let reference_coordinates = Coordinates::new(45.0, 18.9553);
+
+        let times = PrayerTimes::new(date, coordinates, params);
+        let reference_times = PrayerTimes::new(date, reference_coordinates, params);
+
+        for prayer in [
+            Prayer::Fajr,
+            Prayer::Sunrise,
+            Prayer::Dhuhr,
+            Prayer::Asr,
+            Prayer::Maghrib,
+            Prayer::Isha,
+        ] {
+            assert_eq!(times.time(prayer), reference_times.time(prayer));
         }
     }
 }

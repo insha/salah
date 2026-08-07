@@ -94,7 +94,7 @@ pub struct SolarTime {
 }
 
 impl SolarTime {
-    pub fn new(date: DateTime<Utc>, coordinates: Coordinates) -> SolarTime {
+    pub fn new(date: DateTime<Utc>, coordinates: Coordinates) -> Result<SolarTime, &'static str> {
         // All calculation need to occur at 0h0m UTC
         let today = Utc
             .with_ymd_and_hms(date.year(), date.month(), date.day(), 0, 0, 0)
@@ -146,17 +146,24 @@ impl SolarTime {
             next_solar.declination,
         );
 
-        SolarTime {
+        let transit = SolarTime::setting_hour(transit_time, &date)
+            .ok_or("Unable to calculate transit time")?;
+        let sunrise = SolarTime::setting_hour(sunrise_time, &date)
+            .ok_or("Unable to calculate sunrise time")?;
+        let sunset =
+            SolarTime::setting_hour(sunset_time, &date).ok_or("Unable to calculate sunset time")?;
+
+        Ok(SolarTime {
             date: date,
             observer: coordinates,
             solar: solar,
-            transit: SolarTime::setting_hour(transit_time, &date).unwrap(),
-            sunrise: SolarTime::setting_hour(sunrise_time, &date).unwrap(),
-            sunset: SolarTime::setting_hour(sunset_time, &date).unwrap(),
+            transit: transit,
+            sunrise: sunrise,
+            sunset: sunset,
             prev_solar: prev_solar,
             next_solar: next_solar,
             approx_transit: approx_transit,
-        }
+        })
     }
 
     pub fn time_for_solar_angle(
@@ -308,7 +315,7 @@ mod tests {
             .with_ymd_and_hms(2015, 7, 12, 0, 0, 0)
             .single()
             .expect("Invalid date and time provided");
-        let solar = SolarTime::new(date, coordinates);
+        let solar = SolarTime::new(date, coordinates).expect("Valid solar time expected");
         let transit_date = Utc.with_ymd_and_hms(2015, 07, 12, 17, 20, 0).unwrap();
         let sunrise_date = Utc.with_ymd_and_hms(2015, 07, 12, 10, 08, 0).unwrap();
         let sunset_date = Utc.with_ymd_and_hms(2015, 07, 13, 00, 32, 0).unwrap();
@@ -325,7 +332,7 @@ mod tests {
             .with_ymd_and_hms(2015, 7, 12, 0, 0, 0)
             .single()
             .expect("Invalid date and time provided");
-        let solar = SolarTime::new(date, coordinates);
+        let solar = SolarTime::new(date, coordinates).expect("Valid solar time expected");
         let angle = Angle::new(-6.0);
         let twilight_start = solar.time_for_solar_angle(angle, false).unwrap();
         let twilight_end = solar.time_for_solar_angle(angle, true).unwrap();
