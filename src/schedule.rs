@@ -121,15 +121,16 @@ impl PrayerTimes {
     }
 
     pub fn next(&self) -> Prayer {
-        match self.current() {
-            Prayer::Fajr => Prayer::Sunrise,
-            Prayer::Sunrise => Prayer::Dhuhr,
-            Prayer::Dhuhr => Prayer::Asr,
-            Prayer::Asr => Prayer::Maghrib,
-            Prayer::Maghrib => Prayer::Isha,
-            Prayer::Isha => Prayer::Qiyam,
-            Prayer::Qiyam => Prayer::FajrTomorrow,
-            _ => Prayer::FajrTomorrow,
+        match self.current_time(Utc::now()) {
+            None => Prayer::Fajr,
+            Some(Prayer::Fajr) => Prayer::Sunrise,
+            Some(Prayer::Sunrise) => Prayer::Dhuhr,
+            Some(Prayer::Dhuhr) => Prayer::Asr,
+            Some(Prayer::Asr) => Prayer::Maghrib,
+            Some(Prayer::Maghrib) => Prayer::Isha,
+            Some(Prayer::Isha) => Prayer::Qiyam,
+            Some(Prayer::Qiyam) => Prayer::FajrTomorrow,
+            Some(Prayer::FajrTomorrow) => panic!("Out of bounds"),
         }
     }
 
