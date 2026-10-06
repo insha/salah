@@ -4,6 +4,8 @@
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
+//! Configuration models used by the prayer-time calculator.
+
 pub mod adjustments;
 pub mod high_altitude_rule;
 pub mod madhab;

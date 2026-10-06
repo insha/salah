@@ -9,6 +9,15 @@ use serde::{Deserialize, Serialize};
 /// Shafaq is the twilight in the sky. Different madhabs define the appearance of
 /// twilight differently. These values are used by the MoonsightingComittee method
 /// for the different ways to calculate Isha.
+///
+/// # Examples
+///
+/// ```
+/// use salah::Shafaq;
+///
+/// let twilight = Shafaq::Abyad;
+/// assert_eq!(twilight, Shafaq::Abyad);
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Shafaq {

@@ -4,11 +4,39 @@
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
-//! An Islamic prayer time implementation based on the [Adhan](https://github.com/batoulapps/Adhan) library by Batoul Apps.
-//! While it has a lot of commnalities with the interface has
-//! been changed slightly to make it more ergonomic and intuitive.
+//! Calculate Islamic prayer times and the Qibla bearing from a location and date.
 //!
-//! ##### Example
+//! Salah uses astronomical solar-position calculations. Fajr and Isha can be
+//! defined by the sun's depression angle below the horizon (for example, 18°
+//! means the sun is 18° below the horizon), or Isha can be defined as a
+//! number of minutes after Maghrib by selecting a method that uses an
+//! interval. Maghrib and sunrise use the standard solar event calculations
+//! and Dhuhr is solar transit. Asr is derived from the selected [`Madhab`]:
+//! the Hanafi shadow-length rule produces a later time than the Shafi rule.
+//!
+//! Results are returned as [`DateTime<Utc>`]. The input [`NaiveDate`] is a
+//! calendar date in the observer's intended local calendar, while the
+//! astronomical calculation itself is performed in UTC. Convert each result
+//! to the observer's timezone with `with_timezone` before displaying it; the
+//! crate does not infer a timezone from longitude.
+//!
+//! At high latitudes, twilight may not reach the configured solar angle.
+//! [`HighLatitudeRule`] supplies a night-fraction approximation for Fajr and
+//! Isha in that case. The [`Shafaq`] setting selects which twilight
+//! interpretation the Moonsighting Committee method uses for Isha.
+//!
+//! The [`Qiblah`] type provides the initial great-circle bearing from the
+//! supplied coordinates to the Kaaba in Makkah, measured clockwise from true
+//! north in degrees.
+//!
+//! This implementation is based on the [Adhan](https://github.com/batoulapps/Adhan)
+//! library by Batoul Apps and uses equations from Jean Meeus's
+//! *Astronomical Algorithms*.
+//!
+//! # Examples
+//!
+//! Calculate a schedule with a named method and format one result in a local
+//! timezone:
 //!
 //! ```
 //! use salah::prelude::*;
@@ -20,18 +48,29 @@
 //!                       .on(date)
 //!                       .for_location(new_york_city)
 //!                       .with_configuration(params)
-//!                       .calculate();
+//!                       .calculate()
+//!                       .expect("all schedule inputs are present");
+//!
+//! let eastern = chrono::FixedOffset::west_opt(5 * 60 * 60).unwrap();
+//! let fajr = prayers.time(Prayer::Fajr).with_timezone(&eastern);
+//! assert_eq!(fajr.date_naive(), NaiveDate::from_ymd_opt(2019, 1, 25).unwrap());
 //! ```
 //!
-//! ## Crate Features
+//! # Features
 //!
-//! This crate exposes a feature for serialization and deserialization of the output using the `serde` crate. This
-//! functionality is optional and opt-in by adding the `serde` dependency.
+//! Enable the `serde` feature to derive `Serialize` and `Deserialize` for the
+//! public calculation and result models:
+//!
+//! ```toml
+//! [dependencies]
+//! salah = { version = "0.7.6", features = ["serde"] }
+//! ```
 
 mod astronomy;
 mod models;
 mod schedule;
 
+pub use crate::astronomy::qiblah::Qiblah;
 pub use crate::astronomy::unit::{Coordinates, Stride};
 pub use crate::models::adjustments::{Adjustment, TimeAdjustment};
 pub use crate::models::high_altitude_rule::HighLatitudeRule;
@@ -39,6 +78,8 @@ pub use crate::models::madhab::Madhab;
 pub use crate::models::method::Method;
 pub use crate::models::parameters::{Configuration, Parameters};
 pub use crate::models::prayer::Prayer;
+pub use crate::models::rounding::Rounding;
+pub use crate::models::shafaq::Shafaq;
 pub use crate::schedule::{PrayerSchedule, PrayerTimes};
 pub use chrono::{
     DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Timelike, Utc, Weekday,
@@ -62,6 +103,10 @@ pub mod prelude {
     pub use crate::models::parameters::{Configuration, Parameters};
     #[doc(no_inline)]
     pub use crate::models::prayer::Prayer;
+    #[doc(no_inline)]
+    pub use crate::models::rounding::Rounding;
+    #[doc(no_inline)]
+    pub use crate::models::shafaq::Shafaq;
     #[doc(no_inline)]
     pub use crate::schedule::{PrayerSchedule, PrayerTimes};
     #[doc(no_inline)]

@@ -13,9 +13,31 @@ use crate::astronomy::unit::{Angle, Coordinates};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug)]
+/// Initial great-circle bearing from a location to the Kaaba.
+///
+/// The value is measured clockwise from true north and normalized to
+/// `[0, 360)` degrees.
+///
+/// # Examples
+///
+/// ```
+/// use salah::{Coordinates, Qiblah};
+///
+/// let bearing = Qiblah::new(Coordinates::new(40.7128, -74.0059));
+/// assert!((bearing.value() - 58.4817635).abs() < 0.000001);
+/// ```
 pub struct Qiblah(f64);
 
 impl Qiblah {
+    /// Calculate the Qibla bearing for the supplied coordinates.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use salah::{Coordinates, Qiblah};
+    /// let qiblah = Qiblah::new(Coordinates::new(51.5074, -0.1278));
+    /// assert!(qiblah.value() > 0.0 && qiblah.value() < 360.0);
+    /// ```
     pub fn new(location_coordinates: Coordinates) -> Self {
         // Equation from "Spherical Trigonometry For the use
         // of colleges and schools" page 50
@@ -34,6 +56,9 @@ impl Qiblah {
         Qiblah(Angle::from_radians(term4).unwound().degrees)
     }
 
+    /// Return the bearing in degrees clockwise from true north.
+    ///
+    /// The result is in the half-open range `[0, 360)`.
     pub fn value(&self) -> f64 {
         self.0
     }

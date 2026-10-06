@@ -8,22 +8,39 @@ use chrono::{Datelike, Utc, Weekday};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// Names of all obligatory prayers,
-/// sunrise, and Qiyam.
+/// A prayer or solar event represented by a calculated schedule.
+///
+/// # Examples
+///
+/// ```
+/// use salah::Prayer;
+///
+/// assert_eq!(Prayer::Fajr.name(), "Fajr");
+/// assert_eq!(Prayer::FajrTomorrow.name(), "Fajr");
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Prayer {
+    /// Dawn prayer, calculated from the Fajr solar angle.
     Fajr,
+    /// Sunrise.
     Sunrise,
+    /// Noon prayer, at solar transit.
     Dhuhr,
+    /// Afternoon prayer.
     Asr,
+    /// Sunset prayer.
     Maghrib,
+    /// Night prayer, calculated from an angle, twilight, or interval.
     Isha,
+    /// Night vigil time, calculated from the last third of the night.
     Qiyam,
+    /// Fajr on the following calendar day, used for overnight navigation.
     FajrTomorrow,
 }
 
 impl Prayer {
+    /// Return the English transliteration used for display.
     pub fn name(&self) -> String {
         match self {
             Prayer::Fajr | Prayer::FajrTomorrow => String::from("Fajr"),

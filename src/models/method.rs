@@ -12,6 +12,21 @@ use serde::{Deserialize, Serialize};
 
 /// Provides preset configuration for a few authorities
 /// for calculating prayer times.
+///
+/// A method is a starting point, not a statement that one convention is
+/// universally correct. Choose the authority appropriate for the community
+/// whose timetable you are reproducing, then adjust the returned
+/// [`Parameters`] if that timetable specifies additional offsets.
+///
+/// # Examples
+///
+/// ```
+/// use salah::{Madhab, Method};
+///
+/// let parameters = Method::Karachi.parameters();
+/// assert_eq!(parameters.fajr_angle, 18.0);
+/// assert_eq!(parameters.madhab, Madhab::Shafi);
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Method {
@@ -74,6 +89,16 @@ pub enum Method {
 }
 
 impl Method {
+    /// Expand this preset into complete calculation parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use salah::Method;
+    ///
+    /// let parameters = Method::UmmAlQura.parameters();
+    /// assert_eq!(parameters.isha_interval, 90);
+    /// ```
     pub fn parameters(&self) -> Parameters {
         match self {
             Method::MuslimWorldLeague => Configuration::new(18.0, 17.0)

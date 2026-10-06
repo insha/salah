@@ -199,16 +199,28 @@ impl Div for Angle {
     }
 }
 
-/// The latitude and longitude associated with a location.
-/// Both latiude and longitude values are specified in degrees.
+/// The latitude and longitude associated with a location, in decimal degrees.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Coordinates {
+    /// Degrees north or south of the equator. North is positive.
     pub latitude: f64,
+    /// Degrees east or west of Greenwich. East is positive.
     pub longitude: f64,
 }
 
 impl Coordinates {
+    /// Construct coordinates from latitude and longitude in decimal degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use salah::Coordinates;
+    ///
+    /// let london = Coordinates::new(51.5074, -0.1278);
+    /// assert_eq!(london.latitude, 51.5074);
+    /// assert_eq!(london.longitude, -0.1278);
+    /// ```
     pub fn new(latitude: f64, longitude: f64) -> Self {
         Coordinates {
             latitude: latitude,
@@ -218,10 +230,12 @@ impl Coordinates {
 }
 
 impl Coordinates {
+    /// Return the latitude in the calculator's internal angle representation.
     pub fn latitude_angle(&self) -> Angle {
         Angle::new(self.latitude)
     }
 
+    /// Return the longitude in the calculator's internal angle representation.
     pub fn longitude_angle(&self) -> Angle {
         Angle::new(self.longitude)
     }
