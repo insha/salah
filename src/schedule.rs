@@ -19,8 +19,25 @@ use crate::models::parameters::Parameters;
 use crate::models::prayer::Prayer;
 use crate::models::rounding::Rounding;
 
-/// A data struct to hold the timing for all
-/// prayers.
+/// The calculated times for one location and calendar date.
+///
+/// Every returned time is a [`DateTime<Utc>`]. Convert it with
+/// [`DateTime::with_timezone`](chrono::DateTime::with_timezone) for display.
+///
+/// # Examples
+///
+/// ```
+/// use salah::{Configuration, Coordinates, Madhab, Method, NaiveDate, Prayer,
+///             PrayerTimes};
+///
+/// let schedule = PrayerTimes::new(
+///     NaiveDate::from_ymd_opt(2024, 1, 15).unwrap(),
+///     Coordinates::new(40.7128, -74.0059),
+///     Configuration::with(Method::NorthAmerica, Madhab::Shafi),
+/// );
+///
+/// assert_eq!(schedule.time(Prayer::Fajr).timezone(), salah::Utc);
+/// ```
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct PrayerTimes {
     fajr: DateTime<Utc>,
@@ -38,6 +55,11 @@ pub struct PrayerTimes {
 }
 
 impl PrayerTimes {
+    /// Calculate a schedule from a date, coordinates, and complete parameters.
+    ///
+    /// `date` is a timezone-free calendar date for the observer. Results are
+    /// returned as UTC instants; timezone conversion belongs at presentation
+    /// time.
     pub fn new(date: NaiveDate, coordinates: Coordinates, parameters: Parameters) -> PrayerTimes {
         let prayer_date = date
             .and_hms_opt(0, 0, 0)
@@ -103,6 +125,20 @@ impl PrayerTimes {
         }
     }
 
+    /// Return the UTC instant associated with `prayer`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use salah::{Configuration, Coordinates, Madhab, Method, NaiveDate, Prayer, PrayerTimes, Utc};
+    /// let schedule = PrayerTimes::new(
+    ///     NaiveDate::from_ymd_opt(2024, 1, 15).unwrap(),
+    ///     Coordinates::new(40.7128, -74.0059),
+    ///     Configuration::with(Method::NorthAmerica, Madhab::Shafi),
+    /// );
+    /// let fajr = schedule.time(Prayer::Fajr);
+    /// assert_eq!(fajr.timezone(), Utc);
+    /// ```
     pub fn time(&self, prayer: Prayer) -> DateTime<Utc> {
         match prayer {
             Prayer::Fajr => self.fajr,
@@ -116,10 +152,18 @@ impl PrayerTimes {
         }
     }
 
+    /// Return the prayer currently in progress according to the system UTC clock.
+    ///
+    /// This method is inherently time-dependent. For a deterministic display
+    /// or notification, compare a separately supplied instant with
+    /// [`Self::time`] instead.
     pub fn current(&self) -> Prayer {
         self.current_time(Utc::now()).expect("Out of bounds")
     }
 
+    /// Return the next prayer after [`Self::current`].
+    ///
+    /// The result can be [`Prayer::FajrTomorrow`] after Qiyam.
     pub fn next(&self) -> Prayer {
         match self.current() {
             Prayer::Fajr => Prayer::Sunrise,
@@ -133,6 +177,10 @@ impl PrayerTimes {
         }
     }
 
+    /// Return the hours and minutes until [`Self::next`].
+    ///
+    /// The calculation uses [`Utc::now`], so the result changes as time
+    /// passes and is intended for live countdown displays.
     pub fn time_remaining(&self) -> (u32, u32) {
         let next_time = self.time(self.next());
         let now = Utc::now();
@@ -313,7 +361,22 @@ impl PrayerTimes {
     }
 }
 
-/// A builder for the [PrayerTimes](struct.PrayerTimes.html) struct.
+/// A builder for a [`PrayerTimes`] calculation.
+///
+/// # Examples
+///
+/// ```
+/// use salah::prelude::*;
+///
+/// let schedule = PrayerSchedule::new()
+///     .on(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
+///     .for_location(Coordinates::new(40.7128, -74.0059))
+///     .with_configuration(Configuration::with(Method::NorthAmerica, Madhab::Shafi))
+///     .calculate()
+///     .unwrap();
+///
+/// assert!(schedule.time(Prayer::Dhuhr) > schedule.time(Prayer::Sunrise));
+/// ```
 pub struct PrayerSchedule {
     date: Option<NaiveDate>,
     coordinates: Option<Coordinates>,
@@ -321,6 +384,7 @@ pub struct PrayerSchedule {
 }
 
 impl PrayerSchedule {
+    /// Create an empty builder.
     pub fn new() -> PrayerSchedule {
         PrayerSchedule {
             date: None,
@@ -329,21 +393,30 @@ impl PrayerSchedule {
         }
     }
 
+    /// Set the timezone-free calendar date to calculate.
     pub fn on<'a>(&'a mut self, date: NaiveDate) -> &'a mut PrayerSchedule {
         self.date = Some(date);
         self
     }
 
+    /// Set the observer's latitude and longitude in decimal degrees.
     pub fn for_location<'a>(&'a mut self, location: Coordinates) -> &'a mut PrayerSchedule {
         self.coordinates = Some(location);
         self
     }
 
+    /// Set the calculation method and prayer-time parameters.
     pub fn with_configuration<'a>(&'a mut self, params: Parameters) -> &'a mut PrayerSchedule {
         self.params = Some(params);
         self
     }
 
+    /// Calculate the schedule, or report missing builder inputs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the date, location, or configuration has not
+    /// been supplied.
     pub fn calculate(&self) -> Result<PrayerTimes, String> {
         if self.date.is_some() && self.coordinates.is_some() && self.params.is_some() {
             Ok(PrayerTimes::new(

@@ -9,6 +9,17 @@ use serde::{Deserialize, Serialize};
 /// Setting for the Asr prayer time.
 /// For Hanafi madhab, the Asr is bit later
 /// than that of the Shafi madhab.
+///
+/// The distinction is the shadow-length factor used after solar transit:
+/// Shafi uses one shadow length, while Hanafi uses two.
+///
+/// # Examples
+///
+/// ```
+/// use salah::Madhab;
+///
+/// assert!(Madhab::Hanafi.shadow() > Madhab::Shafi.shadow());
+/// ```
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -18,6 +29,10 @@ pub enum Madhab {
 }
 
 impl Madhab {
+    /// Return the shadow-length multiplier used for Asr.
+    ///
+    /// A value of one is the earlier Shafi calculation; a value of two is
+    /// the later Hanafi calculation.
     pub fn shadow(&self) -> i32 {
         *self as i32
     }

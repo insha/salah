@@ -8,7 +8,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::astronomy::unit::Coordinates;
 
-/// Rule for approximating Fajr and Isha at high latitudes
+/// Rule for approximating Fajr and Isha when twilight does not reach its
+/// configured solar angle at high latitudes.
+///
+/// # Examples
+///
+/// ```
+/// use salah::{Coordinates, HighLatitudeRule};
+///
+/// let rule = HighLatitudeRule::recommended(Coordinates::new(51.5, -0.1));
+/// assert_eq!(rule, HighLatitudeRule::SeventhOfTheNight);
+/// ```
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -33,6 +43,10 @@ pub enum HighLatitudeRule {
 }
 
 impl HighLatitudeRule {
+    /// Choose the crate's latitude-based default.
+    ///
+    /// Locations above 48° latitude use [`Self::SeventhOfTheNight`];
+    /// other locations use [`Self::MiddleOfTheNight`].
     pub fn recommended(coordinates: Coordinates) -> HighLatitudeRule {
         if coordinates.latitude > 48.0 {
             HighLatitudeRule::SeventhOfTheNight
