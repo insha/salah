@@ -684,4 +684,29 @@ mod tests {
             Err(_err) => assert!(false),
         }
     }
+
+    #[test]
+    fn calculate_times_with_isha_rounding_up_to_midnight() {
+        // Isha in Lima on this day is at 23:59:3x UTC, which rounds up to
+        // 24:00. It used to fall back to the safe Isha time (05:08 UTC).
+        let date = NaiveDate::from_ymd_opt(2026, 4, 19).expect("Invalid date provided");
+        let params = Configuration::with(Method::NorthAmerica, Madhab::Shafi);
+        let coordinates = Coordinates::new(-12.05, -77.04);
+        let result = PrayerSchedule::new()
+            .on(date)
+            .for_location(coordinates)
+            .with_configuration(params)
+            .calculate();
+
+        match result {
+            Ok(schedule) => {
+                assert_eq!(
+                    schedule.time(Prayer::Isha),
+                    Utc.with_ymd_and_hms(2026, 4, 20, 0, 0, 0).unwrap()
+                );
+            }
+
+            Err(_err) => assert!(false),
+        }
+    }
 }

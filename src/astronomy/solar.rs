@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2022 Farhan Ahmed. All rights reserved.
 //
 
-use chrono::{DateTime, Datelike, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, TimeZone, Utc};
 
 use crate::astronomy::ops;
 use crate::astronomy::unit::Stride;
@@ -197,51 +197,17 @@ impl SolarTime {
 
     fn setting_hour(value: f64, date: &DateTime<Utc>) -> Option<DateTime<Utc>> {
         if value.is_normal() {
-            let calculated_hours = value.floor();
-            let calculated_minutes = ((value - calculated_hours) * 60.0).floor();
-            let calculated_seconds =
-                ((value - (calculated_hours + calculated_minutes / 60.0)) * 60.0 * 60.0).floor();
+            // Count whole seconds from the start of the day, then round to
+            // the nearest minute. Adding a duration rolls over into the next
+            // (or previous) day, so a time that rounds up to 24:00 becomes
+            // 00:00 of the next day.
+            let calculated_seconds = (value * 60.0 * 60.0).floor() as i64;
+            let rounded_minutes = (calculated_seconds + 30).div_euclid(60);
+            let midnight = date.date_naive().and_hms_opt(0, 0, 0)?.and_utc();
 
-            let (adjusted_hour, adjusted_date) =
-                SolarTime::hour_adjustment(calculated_hours, &date);
-
-            // Round to the nearest minute
-            let adjusted_mins = (calculated_minutes + calculated_seconds / 60.0).round() as u32;
-            let adjusted_secs: u32 = 0;
-
-            let (hour, mins, secs) = if adjusted_mins > 59 {
-                (adjusted_hour + 1, 0, adjusted_secs)
-            } else {
-                (adjusted_hour, adjusted_mins, adjusted_secs)
-            };
-
-            let adjusted = Utc
-                .with_ymd_and_hms(
-                    adjusted_date.year(),
-                    adjusted_date.month(),
-                    adjusted_date.day(),
-                    hour,
-                    mins,
-                    secs,
-                )
-                .single();
-
-            adjusted
+            midnight.checked_add_signed(Duration::minutes(rounded_minutes))
         } else {
             None
-        }
-    }
-
-    fn hour_adjustment(calculated_hours: f64, date: &DateTime<Utc>) -> (u32, DateTime<Utc>) {
-        // Adjust the hour to be within 0..=23,
-        // wrapping around as needed; otherwise
-        // chrono method will panic.
-        if calculated_hours < 0.0 {
-            ((calculated_hours + 24.0) as u32, date.yesterday())
-        } else if calculated_hours >= 24.0 {
-            ((calculated_hours - 24.0) as u32, date.tomorrow())
-        } else {
-            (calculated_hours as u32, date.clone())
         }
     }
 }
@@ -332,6 +298,21 @@ mod tests {
 
         assert_eq!(twilight_start.format("%-k:%M").to_string(), "9:38");
         assert_eq!(twilight_end.format("%-k:%M").to_string(), "1:02");
+    }
+
+    #[test]
+    fn sunset_rounding_up_to_midnight_rolls_over_to_the_next_day() {
+        // Mexico City's sunset on this day is at 23:59:3x UTC, which rounds
+        // up to 24:00 and used to panic.
+        let coordinates = Coordinates::new(19.43, -99.13);
+        let date = Utc
+            .with_ymd_and_hms(2026, 11, 8, 0, 0, 0)
+            .single()
+            .expect("Invalid date and time provided");
+        let solar = SolarTime::new(date, coordinates);
+        let sunset_date = Utc.with_ymd_and_hms(2026, 11, 9, 0, 0, 0).unwrap();
+
+        assert_eq!(solar.sunset, sunset_date);
     }
 
     #[test]
